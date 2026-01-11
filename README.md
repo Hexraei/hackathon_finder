@@ -78,3 +78,30 @@ python server.py
 ## License
 
 MIT
+
+---
+
+## 🔮 Future Roadmap (V0.3+)
+
+We aim to become the **"Google Flights/Airbnb for Hackathons"**.
+
+### 📱 **Phase 2: Mobile App (The "HackFind App")**
+*   **Tech Stack**: **Flutter** (Cross-platform iOS/Android).
+*   **Core Feature**: "Magic Fill" – In-app browser with JS injection to auto-fill applications on external sites (Devpost, Unstop) using a stored user profile.
+*   **Engagement**: Push notifications (FCM) for "New AI Hackathons" and "Registration Closing Soon".
+
+### 🧠 **Phase 3: AI-Powered Search**
+*   **Semantic Search**: "Find me a hackathon about saving the ocean" -> Matches "BlueTech Challenge".
+*   **Tech**: **TiDB Serverless** (Vector Search) + **OpenAI Embeddings**.
+*   **Winning Probability Index**: Algorithm to calculate "Win Chance" based on `(Prize Pool / Participants)`.
+
+### ✈️ **Phase 4: Decision Intelligence Features**
+1.  **"Track Prices" -> "Track Deadlines"**: Watch specific events for updates.
+2.  **"Anywhere Search"**: "I'm free next weekend, show me remote hacks."
+3.  **Team Matchmaking**: "Tinder for Hackers" – Match frontend devs with backend engineers.
+4.  **Verified Organizers**: "Superhost" badges for organizers who pay out prizes reliably.
+
+### ⚙️ **Infrastructure Upgrades**
+- **Database**: Migrate SQLite to **TiDB Cloud** to support Mobile App + Web concurrent access.
+- **Backend**: Migrate Flask to **FastAPI** for async performance.
+- **Frontend**: Migrate Vanilla JS to **Next.js** for better SEO and UI components.
