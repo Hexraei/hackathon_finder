@@ -26,6 +26,46 @@ def get_db():
         db = DatabaseManager(str(BASE_DIR / "hackathons.db"))
     return db
 
+def recalculate_status(event_dict):
+    """Recalculate status based on current date (not scrape date)."""
+    today = datetime.now().date()
+    
+    start_date = event_dict.get('start_date')
+    end_date = event_dict.get('end_date')
+    
+    if not start_date:
+        event_dict['status'] = 'unknown'
+        return event_dict
+    
+    try:
+        # Parse start date
+        if isinstance(start_date, str):
+            start = datetime.strptime(start_date[:10], "%Y-%m-%d").date()
+        else:
+            start = start_date
+        
+        # Parse end date (fall back to start if not available)
+        if end_date:
+            if isinstance(end_date, str):
+                end = datetime.strptime(end_date[:10], "%Y-%m-%d").date()
+            else:
+                end = end_date
+        else:
+            end = start
+        
+        # Determine current status
+        if today < start:
+            event_dict['status'] = 'upcoming'
+        elif start <= today <= end:
+            event_dict['status'] = 'ongoing'
+        else:
+            event_dict['status'] = 'ended'
+            
+    except (ValueError, TypeError):
+        event_dict['status'] = 'unknown'
+    
+    return event_dict
+
 # === Serve UI ===
 @app.route('/')
 def home():
@@ -66,7 +106,9 @@ def api_hackathons():
         if location:
             events = [e for e in events if e.location and location.lower() in e.location.lower()]
         
-        return jsonify([e.to_dict() for e in events])
+        # Recalculate status dynamically based on current date
+        result = [recalculate_status(e.to_dict()) for e in events]
+        return jsonify(result)
     except Exception as e:
         print(f"API Error: {e}")
         import traceback
@@ -90,4 +132,4 @@ if __name__ == '__main__':
     print(f"{'='*50}")
     print(f"  Open: http://localhost:8000")
     print(f"{'='*50}\n")
-    app.run(port=8000, debug=False, host='127.0.0.1')
+    app.run(port=8001, debug=False, host='127.0.0.1')
