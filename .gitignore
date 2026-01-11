@@ -27,3 +27,16 @@ Thumbs.db
 
 # Extensions
 extensions/
+
+# Vector DB (local only, will be regenerated)
+chroma_db/
+
+# Model cache (auto-downloaded)
+.cache/
+
+# Database
+hackathons.db
+
+# Python
+__pycache__/
+*.pyc

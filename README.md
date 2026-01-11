@@ -114,13 +114,20 @@ hackfind/
 
 ---
 
-## �️ Roadmap
+## 🗺️ Roadmap
 
-### Version 0.3: Mobile & AI
+### Version 0.3: AI Search ✅ IMPLEMENTED
+| Feature | Tech Stack | Status |
+|---------|------------|:------:|
+| 🧠 AI Search | ChromaDB + MiniLM | ✅ Done |
+| 📊 961 Events Vectorized | Sentence-Transformers | ✅ Done |
+
+**API Endpoint**: `GET /api/search/ai?q=<natural language query>`
+
+### Version 0.3: Mobile & Push
 | Feature | Tech Stack | Priority |
 |---------|------------|:--------:|
 | 📱 Mobile App | Flutter | High |
-| 🧠 AI Search | TiDB Vector + OpenAI | High |
 | ⚡ Magic Fill | WebView JS Injection | Medium |
 | 🔔 Push Notifications | Firebase FCM | Medium |
 

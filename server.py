@@ -115,6 +115,51 @@ def api_hackathons():
         traceback.print_exc()
         return jsonify([])
 
+@app.route('/api/search/ai')
+def ai_search():
+    """Semantic search using AI embeddings."""
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify({"error": "Missing query parameter 'q'"}), 400
+    
+    try:
+        from utils.embeddings import generate_embedding
+        from database.vector_store import search_similar, get_collection_count
+        
+        # Check if vector store has data
+        count = get_collection_count()
+        if count == 0:
+            return jsonify({"error": "Vector store is empty. Run vectorize_events.py first."}), 503
+        
+        # Generate embedding for query
+        query_embedding = generate_embedding(query)
+        if not query_embedding:
+            return jsonify({"error": "Failed to generate embedding"}), 500
+        
+        # Search vector store
+        results = search_similar(query_embedding, top_k=50)
+        
+        # Enrich with full event data from SQLite
+        database = get_db()
+        enriched = []
+        for r in results:
+            event = database.get_event(r['id'])
+            if event:
+                event_dict = recalculate_status(event.to_dict())
+                event_dict['ai_score'] = r['score']
+                enriched.append(event_dict)
+        
+        print(f"AI Search: '{query}' -> {len(enriched)} results")
+        return jsonify(enriched)
+        
+    except ImportError as e:
+        return jsonify({"error": f"AI dependencies not installed: {e}"}), 503
+    except Exception as e:
+        print(f"AI Search Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/stats')
 def api_stats():
     """Get database stats"""
