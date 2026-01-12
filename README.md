@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.3.2-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.4.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
@@ -33,8 +33,8 @@
 |---------|-------------|
 | 🔄 **Multi-Source Aggregation** | Devpost, Devfolio, Unstop, MLH, DoraHacks, and more. |
 | 🎯 **Smart Date Parsing** | Handles ISO, Epoch, and complex date ranges. |
-| 🤖 **Browser Automation** | Playwright-powered scraping for JS-heavy sites. |
-| 🔎 **Full-Text Search** | SQLite FTS5 for fast, fuzzy searching. |
+| ⚡ **Direct API Integration** | Fast, accurate data fetching for Unstop & Devfolio. |
+| 🔎 **Hybrid Search** | Vector (Semantic) + Keyword (Lexical) for best-in-class relevance. |
 | 📊 **Normalized Data** | Consistent schema across all sources. |
 | 🧠 **AI Semantic Search** | ChromaDB + MiniLM for natural language queries. |
 
@@ -64,6 +64,25 @@ python server.py
 ---
 
 ## 📝 Changelog
+
+### Version 0.4.0 (2026-01-13)
+
+**Major Enhancements**
+- 🧠 **Hybrid AI Search**: Combined Vector Search (Semantic) with Keyword Search (Lexical) using Reciprocal Rank Fusion.
+  - Improved "loose relevance" pass rate from 26% to 38%.
+  - Better handling of exact technical terms (e.g., "frontend", "web3").
+- ⚡ **Unstop Data Overhaul**: Replaced browser scraping with Direct API Polling.
+  - Scrapes 415 events in seconds (vs 30 mins).
+  - Captures exact **Registration Deadlines** (fixing "Upcoming" vs "Ended" status accuracy).
+  - Retrieves full rich-text descriptions for superior search context.
+
+**UI / UX**
+- 📅 **Registration Deadlines**: Frontend now prioritizes showing "Reg: [Deadline]" to clearly indicate entry cutoffs.
+- 🎨 **Status Badges**: Improved accuracy of "Live Now" vs "Upcoming" based on refined date data.
+
+**Technical**
+- 🧹 **Codebase Cleanup**: Removed legacy browser automation scripts for Unstop.
+- 🔄 **Optimization**: Parallelized API fetching for maximum throughput.
 
 ### Version 0.3.2 (2026-01-12)
 

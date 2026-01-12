@@ -4,6 +4,7 @@ Embedding Utilities for AI-Powered Search
 Uses Sentence-Transformers (MiniLM) for local, free embeddings.
 """
 from typing import List, Optional
+from functools import lru_cache
 import os
 
 # Force CPU to avoid CUDA errors
@@ -20,6 +21,7 @@ def get_model():
         _model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')  # Force CPU
     return _model
 
+@lru_cache(maxsize=1000)  # Cache up to 1000 query embeddings
 def generate_embedding(text: str) -> List[float]:
     """
     Generate embedding vector for a text string.
@@ -47,14 +49,18 @@ def generate_search_text(event: dict) -> str:
     Returns:
         Combined text string
     """
+    tags = event.get('tags', [])
+    if isinstance(tags, list):
+        tags = ' '.join(tags)
+    
     parts = [
+        tags, # Prioritize tags for better semantic matching
         event.get('title', ''),
         event.get('description', ''),
-        ' '.join(event.get('tags', []) if isinstance(event.get('tags'), list) else []),
         event.get('location', ''),
-        event.get('organizer', ''),
+        event.get('mode', '')
     ]
-    return ' '.join(filter(None, parts))
+    return ' . '.join([p for p in parts if p and p.strip()])
 
 def batch_generate_embeddings(texts: List[str]) -> List[List[float]]:
     """
