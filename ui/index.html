@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HackFind - Discover Hackathons Worldwide</title>
-    <meta name="description" content="Find and track hackathons from 17+ platforms. AI-powered search across MLH, Devpost, Devfolio, and more.">
-    
+    <meta name="description"
+        content="Find and track hackathons from 17+ platforms. AI-powered search across MLH, Devpost, Devfolio, and more.">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
-    
+
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%236366f1'/></svg>">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%236366f1'/></svg>">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -37,19 +42,21 @@
     <section class="hero">
         <div class="hero-content">
             <h1 class="hero-title">Find Your Next <span class="gradient-text">Hackathon</span></h1>
-            <p class="hero-subtitle">AI-powered search across 17 platforms. Real-time updates from MLH, Devpost, Devfolio & more.</p>
-            
+            <p class="hero-subtitle">AI-powered search across 17 platforms. Real-time updates from MLH, Devpost,
+                Devfolio & more.</p>
+
             <!-- Search Bar -->
             <div class="search-container">
                 <div class="search-box">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input type="text" class="search-input" placeholder="Search hackathons... (e.g., 'AI hackathons in India')" id="searchInput">
+                    <input type="text" class="search-input"
+                        placeholder="Search hackathons... (e.g., 'AI hackathons in India')" id="searchInput">
                     <button class="search-btn" id="searchBtn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                            <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                     </button>
                 </div>
@@ -61,19 +68,42 @@
     <section class="filters">
         <div class="filters-content">
             <div class="filter-pills">
-                <button class="filter-pill active" data-filter="all">All</button>
-                <button class="filter-pill" data-filter="upcoming">Upcoming</button>
+                <button class="filter-pill" data-filter="all">All</button>
+                <button class="filter-pill active" data-filter="upcoming">Upcoming</button>
                 <button class="filter-pill" data-filter="ongoing">Live Now</button>
                 <button class="filter-pill" data-filter="online">Online</button>
                 <button class="filter-pill" data-filter="in-person">In-Person</button>
             </div>
-            
+
+            <!-- Source Filter -->
+            <div class="source-filter-container">
+                <button class="source-filter-toggle" id="sourceFilterToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M7 12h10M11 18h2" />
+                    </svg>
+                    <span>Filter by Source</span>
+                    <span class="source-count" id="sourceCount">(14/14)</span>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </button>
+                <div class="source-filter-panel" id="sourceFilterPanel">
+                    <div class="source-filter-actions">
+                        <button class="source-action-btn" id="selectAllSources">Select All</button>
+                        <button class="source-action-btn" id="clearAllSources">Clear All</button>
+                    </div>
+                    <div class="source-checkboxes" id="sourceCheckboxes">
+                        <!-- Checkboxes will be dynamically generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <div class="filter-actions">
                 <div class="sort-dropdown">
                     <button class="sort-btn" id="sortBtn">
                         <span>Sort: Latest</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m6 9 6 6 6-6"/>
+                            <path d="m6 9 6 6 6-6" />
                         </svg>
                     </button>
                     <div class="sort-menu" id="sortMenu">
@@ -83,7 +113,7 @@
                         <button class="sort-option" data-sort="title">A-Z</button>
                     </div>
                 </div>
-                
+
                 <span class="results-count" id="resultsCount">Loading...</span>
             </div>
         </div>
@@ -94,7 +124,7 @@
         <div class="bento-grid" id="bentoGrid">
             <!-- Cards injected by JS -->
         </div>
-        
+
         <!-- Loading State -->
         <div class="loading-state" id="loadingState">
             <div class="skeleton-grid">
@@ -106,7 +136,7 @@
                 <div class="skeleton-card"></div>
             </div>
         </div>
-        
+
         <!-- Empty State -->
         <div class="empty-state hidden" id="emptyState">
             <div class="empty-icon">?</div>
@@ -121,7 +151,7 @@
         <div class="pagination">
             <button class="page-btn prev" id="prevBtn" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m15 18-6-6 6-6"/>
+                    <path d="m15 18-6-6 6-6" />
                 </svg>
             </button>
             <div class="page-numbers" id="pageNumbers">
@@ -129,7 +159,7 @@
             </div>
             <button class="page-btn next" id="nextBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m9 18 6-6-6-6"/>
+                    <path d="m9 18 6-6-6-6" />
                 </svg>
             </button>
         </div>
@@ -154,4 +184,5 @@
     <!-- Scripts -->
     <script src="app.js"></script>
 </body>
+
 </html>

@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.3.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.3.2-blue" alt="Version">
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
@@ -65,6 +65,37 @@ python server.py
 
 ## 📝 Changelog
 
+### Version 0.3.2 (2026-01-12)
+
+**New Features**
+- 🎯 **Source Filter**: Multi-select checkbox filter for all 14 sources (Devpost, Unstop, MLH, Kaggle, etc.)
+- 📊 Collapsible filter panel with "Select All" / "Clear All" buttons
+- 💾 Source filter selections persist across page refreshes (localStorage)
+- 🔄 Source filter works seamlessly with existing status, mode, and search filters
+
+**Data Extraction Improvements**
+- ✅ **Unstop**: Fixed prize extraction from `prizes` array (₹ currency support)
+- ✅ **Unstop**: Fixed date extraction from `regnRequirements` (start_regn_dt, end_regn_dt)
+- ✅ **Unstop**: Fixed location extraction from `address_with_country_logo` (city, state)
+- 📈 **Unstop**: Now showing 98% valid dates, 62% valid prizes, 100% valid locations (400+ events)
+- 🔧 Added generic nav link filters for TechGig and HackerEarth scrapers
+
+**Prize Display Improvements**
+- 💰 Smart prize display with 3 modes: monetary prizes (e.g., ₹15,000), "Prize TBD" for missing prizes, "Non-Cash Prize" for non-monetary rewards
+- 🎨 Styled TBD and non-cash prizes with muted colors to distinguish from monetary prizes
+- 🔢 Changed prize format from K/M abbreviations to comma-separated numbers for better readability
+- ✅ Fixed $0/₹0 prizes to show as "Prize TBD" instead of displaying zero amounts
+
+**Bug Fixes**
+- Fixed source filter initialization to validate localStorage sources against current data
+- Fixed text variable scope issues in TechGig scraper
+- Added debug logging for source filter troubleshooting
+
+**Technical**
+- Enhanced `scrape_unstop` with nested JSON field mapping
+- Improved scraper robustness with better error handling
+- Added responsive grid layout for source checkboxes (mobile-friendly)
+
 ### Version 0.3.1 (2026-01-12)
 
 **UI Improvements**
@@ -105,13 +136,17 @@ python server.py
 | ⚡ Magic Fill | WebView JS Injection | Medium |
 | 🔔 Push Notifications | Firebase FCM | Medium |
 
-### Version 0.4: Intelligence
+### Version 0.4: Intelligence & Personalization
 | Feature | Description |
 |---------|-------------|
-| 📈 Win Probability | `Prize ÷ Participants` algorithm. |
-| ⏰ Deadline Tracker | Watch events for updates. |
-| 👥 Team Matchmaking | Connect hackers by skills. |
-| ✅ Verified Organizers | Trust badges for reliable hosts. |
+| 🌍 **Geographic Personalization** | Auto-detect user location; prioritize country-specific platforms (Unstop for India, MLH for USA). |
+| 🎯 **Smart Ranking** | Offline events: local first. Online events: high-stakes global hackathons. |
+| 🌐 **Global Platform Expansion** | Add region-specific scrapers (Europe: HackZurich, APAC: local platforms, Africa: AfriHacks). |
+| 📈 **Win Probability** | `Prize ÷ Participants` algorithm. |
+| ⏰ **Deadline Tracker** | Watch events for updates. |
+| 👥 **Team Matchmaking** | Connect hackers by skills. |
+| ✅ **Verified Organizers** | Trust badges for reliable hosts. |
+| 📍 **Proximity Bonus** | Rank in-person events by distance from user. |
 
 ### Infrastructure
 | Current | Target |

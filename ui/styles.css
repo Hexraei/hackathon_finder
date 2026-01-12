@@ -1029,6 +1029,39 @@ input {
     margin-top: var(--space-1);
 }
 
+/* Style for TBD prizes */
+.card-prize.tbd {
+    color: var(--color-gray-500);
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* Style for non-cash prizes */
+.card-prize.non-cash {
+    color: var(--color-gray-600);
+    font-weight: 500;
+}
+
+.card-stats {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.card-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-600);
+}
+
+.stat-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
 .card-tags {
     display: flex;
     flex-wrap: wrap;
@@ -1101,5 +1134,150 @@ input {
 
     .bento-card {
         padding: var(--space-3);
+    }
+}/* =========================================
+   Source Filter Styles
+   ========================================= */
+
+.source-filter-container {
+    margin-top: var(--space-4);
+    width: 100%;
+}
+
+.source-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-gray-100);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-gray-900);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.source-filter-toggle:hover {
+    background: var(--color-gray-200);
+    border-color: var(--color-gray-300);
+}
+
+.source-filter-toggle svg:first-child {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.source-filter-toggle .source-count {
+    color: var(--color-gray-500);
+    font-size: var(--font-size-xs);
+    margin-left: auto;
+}
+
+.source-filter-toggle .chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.source-filter-toggle.active .chevron {
+    transform: rotate(180deg);
+}
+
+.source-filter-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.source-filter-panel.active {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.source-filter-actions {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.source-action-btn {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.source-action-btn:hover {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-400);
+}
+
+.source-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-2);
+    padding: var(--space-4);
+}
+
+.source-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.source-checkbox-item:hover {
+    background: var(--color-gray-50);
+}
+
+.source-checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-black);
+}
+
+.source-checkbox-item label {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-900);
+    cursor: pointer;
+    user-select: none;
+}
+
+.source-checkbox-item input[type="checkbox"]:checked+label {
+    font-weight: 500;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .source-checkboxes {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: var(--space-1);
+        padding: var(--space-3);
+    }
+
+    .source-filter-toggle {
+        font-size: var(--font-size-xs);
+        padding: var(--space-2) var(--space-3);
     }
 }

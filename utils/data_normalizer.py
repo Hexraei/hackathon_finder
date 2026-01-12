@@ -347,6 +347,7 @@ class DataNormalizer:
         Normalize prize pool to standard format.
         Returns (display_string, numeric_value).
         Preserves original currency symbols from source data.
+        Preserves non-monetary prizes (e.g., 'Shower', 'Swag', 'Certificates').
         """
         if not prize:
             return None, 0.0
@@ -355,6 +356,7 @@ class DataNormalizer:
             prize = str(prize)
         
         prize = prize.strip()
+        original_prize = prize  # Keep original for non-monetary prizes
         
         # Detect currency symbol from the original prize string
         currency_symbol = "$"  # Default to USD
@@ -375,13 +377,14 @@ class DataNormalizer:
         # Handle formats like "$10,000", "$10K", "10000 USD", "₹50,000"
         numeric_match = re.search(r'[\d,]+\.?\d*', prize.replace(',', ''))
         if not numeric_match:
-            return prize, 0.0
+            # No number found - return original text (e.g., "Shower", "Swag")
+            return original_prize, 0.0
         
         numeric_str = numeric_match.group().replace(',', '')
         try:
             value = float(numeric_str)
         except ValueError:
-            return prize, 0.0
+            return original_prize, 0.0
         
         # Handle K/M suffixes
         if re.search(r'\dk\b', prize.lower()):
@@ -389,13 +392,18 @@ class DataNormalizer:
         elif re.search(r'\dm\b', prize.lower()):
             value *= 1000000
         
+        # If value is 0 and original text has non-numeric content, keep original
+        # (e.g., "Shower" instead of "$0")
+        if value == 0:
+            # Check if original has meaningful non-numeric text
+            non_numeric_text = re.sub(r'[\d,.$€£¥₹\s]+', '', original_prize).strip()
+            if non_numeric_text:
+                # Has meaningful text like "Shower", "Swag", etc.
+                return original_prize, 0.0
+        
         # Format display string with detected currency
-        if value >= 1000000:
-            display = f"{currency_symbol}{value/1000000:.1f}M"
-        elif value >= 1000:
-            display = f"{currency_symbol}{value/1000:.0f}K"
-        else:
-            display = f"{currency_symbol}{value:.0f}"
+        # Use comma-separated format for better clarity (e.g., $1,000 instead of $1K)
+        display = f"{currency_symbol}{value:,.0f}"
         
         return display, value
     

@@ -14,11 +14,13 @@ let state = {
     hackathons: [],
     filteredHackathons: [],
     displayedCount: 0,
-    currentFilter: 'all',
+    currentFilter: 'upcoming',  // Default to upcoming to hide ended events
     currentSort: 'latest',
     searchQuery: '',
     isLoading: true,
-    bookmarks: new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]'))
+    bookmarks: new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')),
+    selectedSources: new Set(JSON.parse(localStorage.getItem('selectedSources') || '[]')),
+    allSources: []
 };
 
 const elements = {
@@ -32,7 +34,13 @@ const elements = {
     resultsCount: document.getElementById('resultsCount'),
     filterPills: document.querySelectorAll('.filter-pill'),
     sortOptions: document.querySelectorAll('.sort-option'),
-    sortDropdown: document.querySelector('.sort-dropdown')
+    sortDropdown: document.querySelector('.sort-dropdown'),
+    sourceFilterToggle: document.getElementById('sourceFilterToggle'),
+    sourceFilterPanel: document.getElementById('sourceFilterPanel'),
+    sourceCheckboxes: document.getElementById('sourceCheckboxes'),
+    sourceCount: document.getElementById('sourceCount'),
+    selectAllSources: document.getElementById('selectAllSources'),
+    clearAllSources: document.getElementById('clearAllSources')
 };
 
 // === Init ===
@@ -53,6 +61,9 @@ async function init() {
         console.log('API not available, no data to show');
         state.hackathons = [];
     }
+
+    // Initialize source filter
+    initializeSourceFilter();
 
     applyFiltersAndSort();
     bindEvents();
@@ -78,6 +89,11 @@ function bindEvents() {
             elements.sortDropdown?.classList.remove('open');
         }
     });
+
+    // Source filter events
+    elements.sourceFilterToggle?.addEventListener('click', toggleSourceFilter);
+    elements.selectAllSources?.addEventListener('click', selectAllSources);
+    elements.clearAllSources?.addEventListener('click', clearAllSources);
 
     // Infinite scroll
     window.addEventListener('scroll', debounce(handleScroll, 100));
@@ -142,6 +158,11 @@ function applyFiltersAndSort() {
             (h.source || '').toLowerCase().includes(q) ||
             (h.tags || []).some(t => t.toLowerCase().includes(q))
         );
+    }
+
+    // Apply source filter
+    if (state.selectedSources.size > 0 && state.selectedSources.size < state.allSources.length) {
+        filtered = filtered.filter(h => state.selectedSources.has(h.source));
     }
 
     // Apply filters with client-side status calculation
@@ -326,8 +347,48 @@ function createCard(h) {
                     <span class="meta-item">${dateRange}</span>
                     <span class="meta-item">${location}</span>
                 </div>
-                ${h.prize_pool ? `<div class="card-prize">${h.prize_pool}</div>` : ''}
-                ${h.tags?.length ? `<div class="card-tags">${h.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                ${(() => {
+            const prize = h.prize_pool;
+
+            // No prize data at all
+            if (!prize) {
+                return `<div class="card-prize tbd">Prize TBD</div>`;
+            }
+
+            // Check if it's a monetary prize (starts with currency symbol or is a number)
+            const isMonetary = /^[\$€£¥₹][\d,]+/.test(prize);
+
+            if (isMonetary) {
+                // Display monetary prize as-is
+                return `<div class="card-prize">${prize}</div>`;
+            } else {
+                // Non-monetary prize (Shower, Swag, etc.) or zero value
+                const isZeroValue = prize.match(/^[\$€£¥₹]?0(\.0+)?$/);
+                if (isZeroValue) {
+                    return `<div class="card-prize tbd">Prize TBD</div>`;
+                } else {
+                    return `<div class="card-prize non-cash">Non-Cash Prize</div>`;
+                }
+            }
+        })()}
+        
+        <div class="card-stats">
+            ${h.participants_count ? `
+                <div class="card-stat" title="Total Participants">
+                    <span class="stat-icon">👥</span>
+                    <span>${parseInt(h.participants_count).toLocaleString()}</span>
+                </div>
+            ` : ''}
+            
+            ${h.team_size_max ? `
+                <div class="card-stat" title="Max Team Size">
+                    <span class="stat-icon">👤</span>
+                    <span>${h.team_size_max == 1 ? 'Solo' : `Team of ${h.team_size_max}`}</span>
+                </div>
+            ` : ''}
+        </div>
+
+        ${h.tags?.length ? `<div class="card-tags">${h.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
             </div>
         </article>
     `;
@@ -442,3 +503,99 @@ function resetFilters() {
 
 window.loadMore = loadMore;
 window.resetFilters = resetFilters;
+
+
+// === Source Filter Functions ===
+
+function initializeSourceFilter() {
+    // Extract unique sources from hackathons
+    state.allSources = [...new Set(state.hackathons.map(h => h.source))].sort();
+
+    console.log('All sources:', state.allSources);
+    console.log('Selected sources from localStorage:', [...state.selectedSources]);
+
+    // Validate selectedSources - remove any that don't exist in current data
+    const validSelectedSources = [...state.selectedSources].filter(s => state.allSources.includes(s));
+
+    // If no valid sources selected or localStorage was empty, select all by default
+    if (validSelectedSources.length === 0) {
+        state.selectedSources = new Set(state.allSources);
+        localStorage.setItem('selectedSources', JSON.stringify([...state.selectedSources]));
+        console.log('Initialized with all sources:', [...state.selectedSources]);
+    } else {
+        // Update to only valid sources
+        state.selectedSources = new Set(validSelectedSources);
+        localStorage.setItem('selectedSources', JSON.stringify([...state.selectedSources]));
+        console.log('Using validated sources:', [...state.selectedSources]);
+    }
+
+    // Generate checkboxes
+    renderSourceCheckboxes();
+    updateSourceCount();
+}
+
+function renderSourceCheckboxes() {
+    if (!elements.sourceCheckboxes) return;
+
+    elements.sourceCheckboxes.innerHTML = state.allSources.map(source => `
+        <label class="source-checkbox-item">
+            <input 
+                type="checkbox" 
+                value="${source}" 
+                ${state.selectedSources.has(source) ? 'checked' : ''}
+                onchange="handleSourceChange(this)"
+            />
+            <label>${source}</label>
+        </label>
+    `).join('');
+}
+
+function toggleSourceFilter() {
+    elements.sourceFilterToggle?.classList.toggle('active');
+    elements.sourceFilterPanel?.classList.toggle('active');
+}
+
+function handleSourceChange(checkbox) {
+    const source = checkbox.value;
+
+    if (checkbox.checked) {
+        state.selectedSources.add(source);
+    } else {
+        state.selectedSources.delete(source);
+    }
+
+    // Save to localStorage
+    localStorage.setItem('selectedSources', JSON.stringify([...state.selectedSources]));
+
+    // Update UI and re-filter
+    updateSourceCount();
+    applyFiltersAndSort();
+    renderHackathons();
+}
+
+function selectAllSources() {
+    state.selectedSources = new Set(state.allSources);
+    localStorage.setItem('selectedSources', JSON.stringify([...state.selectedSources]));
+    renderSourceCheckboxes();
+    updateSourceCount();
+    applyFiltersAndSort();
+    renderHackathons();
+}
+
+function clearAllSources() {
+    state.selectedSources.clear();
+    localStorage.setItem('selectedSources', JSON.stringify([]));
+    renderSourceCheckboxes();
+    updateSourceCount();
+    applyFiltersAndSort();
+    renderHackathons();
+}
+
+function updateSourceCount() {
+    if (elements.sourceCount) {
+        elements.sourceCount.textContent = `(${state.selectedSources.size}/${state.allSources.length})`;
+    }
+}
+
+// Make handleSourceChange global
+window.handleSourceChange = handleSourceChange;
