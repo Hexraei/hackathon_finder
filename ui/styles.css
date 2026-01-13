@@ -1135,7 +1135,9 @@ input {
     .bento-card {
         padding: var(--space-3);
     }
-}/* =========================================
+}
+
+/* =========================================
    Source Filter Styles
    ========================================= */
 
@@ -1279,5 +1281,307 @@ input {
     .source-filter-toggle {
         font-size: var(--font-size-xs);
         padding: var(--space-2) var(--space-3);
+    }
+}
+
+/* =========================================
+   NEW BENTO CARD DESIGN
+   =========================================*/
+
+/* Override base bento-card for new design */
+.bento-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4);
+    min-height: 320px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.bento-card:hover {
+    z-index: 10;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: var(--color-gray-300);
+}
+
+/* Calendar Badge (Top Right) */
+.bento-calendar {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-gray-200);
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-month {
+    background: var(--color-black);
+    color: var(--color-white);
+    font-size: 8px;
+    font-weight: 600;
+    padding: 4px 0 2px;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.calendar-day {
+    background: var(--color-white);
+    color: var(--color-black);
+    font-size: 16px;
+    font-weight: 700;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Source Icon (Top Left) */
+.bento-source-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-gray-700);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: var(--space-3);
+}
+
+/* Content Area */
+.bento-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: var(--space-3);
+    color: var(--color-gray-900);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    padding-right: 60px;
+    /* Space for calendar */
+}
+
+/* Mode Row */
+.bento-mode-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.bento-mode {
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-gray-100);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.bento-mode.online {
+    color: #059669;
+    background: #d1fae5;
+}
+
+.bento-mode.in-person {
+    color: #7c3aed;
+    background: #ede9fe;
+}
+
+.bento-mode.hybrid {
+    color: #2563eb;
+    background: #dbeafe;
+}
+
+.bento-location {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Prize */
+.bento-prize {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--color-gray-800);
+    margin-bottom: var(--space-3);
+}
+
+.bento-prize.tbd {
+    color: var(--color-gray-400);
+    font-weight: 500;
+    font-size: var(--font-size-lg);
+}
+
+.bento-prize.non-cash {
+    color: var(--color-gray-500);
+    font-weight: 500;
+    font-size: var(--font-size-lg);
+}
+
+/* Stats Row */
+.bento-stats-row {
+    display: flex;
+    gap: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+.bento-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-600);
+}
+
+.bento-stat .stat-icon {
+    font-size: var(--font-size-base);
+}
+
+/* Tags */
+.bento-tags {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.bento-tag {
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-gray-100);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    border-radius: 6px;
+    color: var(--color-gray-600);
+}
+
+/* Divider */
+.bento-divider {
+    height: 1px;
+    background: var(--color-gray-200);
+    margin: var(--space-4) 0;
+}
+
+/* Footer */
+.bento-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.bento-cta {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bento-cta:hover {
+    background: var(--color-black);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.bento-bookmark {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-xl);
+    flex-shrink: 0;
+    color: var(--color-gray-400);
+}
+
+.bento-bookmark:hover {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-300);
+    color: var(--color-gray-600);
+}
+
+.bento-bookmark.active {
+    background: var(--color-black);
+    border-color: var(--color-black);
+    color: var(--color-white);
+}
+
+/* Logo Icon SVG styling */
+.logo-icon {
+    width: 32px;
+    height: 24px;
+    color: var(--color-black);
+}
+
+/* Grid adjustment for new cards */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-4);
+}
+
+/* Mobile responsive for new cards */
+@media (max-width: 768px) {
+    .bento-card {
+        padding: var(--space-3);
+        min-height: 280px;
+        border-radius: 18px;
+    }
+
+    .bento-calendar {
+        width: 44px;
+    }
+
+    .calendar-day {
+        font-size: 16px;
+    }
+
+    .bento-title {
+        font-size: var(--font-size-lg);
+        padding-right: 50px;
+    }
+
+    .bento-prize {
+        font-size: var(--font-size-xl);
+    }
+
+    .bento-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
     }
 }

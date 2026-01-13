@@ -293,19 +293,25 @@ function renderHackathons(append = false) {
 
     state.displayedCount += items.length;
 
-    // Bind new card events
+    // Bind new card events (card click does nothing, only CTA button redirects)
     document.querySelectorAll('.bento-card:not([data-bound])').forEach(card => {
         card.dataset.bound = 'true';
-        const url = card.dataset.url;
-        card.onclick = e => {
-            if (e.target.closest('.bookmark-btn')) return;
-            if (url && url.startsWith('http')) window.open(url, '_blank', 'noopener');
-        };
     });
 
-    document.querySelectorAll('.bookmark-btn:not([data-bound])').forEach(btn => {
+    document.querySelectorAll('.bento-bookmark:not([data-bound])').forEach(btn => {
         btn.dataset.bound = 'true';
         btn.addEventListener('click', e => toggleBookmark(e, btn.dataset.id));
+    });
+
+    // CTA button redirects to hackathon URL
+    document.querySelectorAll('.bento-cta:not([data-bound])').forEach(btn => {
+        btn.dataset.bound = 'true';
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const card = btn.closest('.bento-card');
+            const url = card?.dataset.url;
+            if (url && url.startsWith('http')) window.open(url, '_blank', 'noopener');
+        });
     });
 
     renderLoadMore();
@@ -335,107 +341,119 @@ function loadMore() {
 
 function createCard(h) {
     const isBookmarked = state.bookmarks.has(h.id);
-    // User requested only Registration Deadline
-    const regDeadline = h.end_date ? formatDate(h.end_date) : 'Open';
     const location = getLocation(h.location);
 
-    // Determine mode - if location is Online/Virtual/Remote, mode should be online
+    // Determine mode
     let mode = h.mode || 'unknown';
     const locLower = location.toLowerCase();
     if (locLower === 'online' || locLower === 'virtual' || locLower === 'remote' || locLower.includes('online')) {
         mode = 'online';
     }
 
-    // Prize is already formatted with correct currency from scraper
+    // Parse date for calendar badge
+    const dateObj = h.end_date ? new Date(h.end_date) : null;
+    const month = dateObj ? dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : 'TBA';
+    const day = dateObj ? dateObj.getDate() : '--';
+
+    // Prize display logic
+    const getPrizeDisplay = () => {
+        const prize = h.prize_pool;
+        if (!prize) return { text: 'Prize TBD', class: 'tbd' };
+        const isMonetary = /^[\$€£¥₹][\d,]+/.test(prize);
+        if (isMonetary) return { text: prize, class: '' };
+        const isZeroValue = prize.match(/^[\$€£¥₹]?0(\.0+)?$/);
+        if (isZeroValue) return { text: 'Prize TBD', class: 'tbd' };
+        return { text: 'Non-Cash Prize', class: 'non-cash' };
+    };
+    const prizeInfo = getPrizeDisplay();
+
+    // Stats section
+    const getStatsHtml = () => {
+        let stats = [];
+        const count = parseInt(h.participants_count || 0);
+        const status = calculateStatus(h);
+
+        if (status === 'upcoming' && count === 0) {
+            stats.push(`<span class="bento-stat"><span class="stat-icon">⏳</span>Upcoming</span>`);
+        } else if (count > 0) {
+            stats.push(`<span class="bento-stat"><span class="stat-icon">👥</span>${count.toLocaleString()}</span>`);
+        }
+
+        if (h.team_size_min || h.team_size_max) {
+            let teamText;
+            if (h.team_size_min && h.team_size_max) {
+                teamText = h.team_size_min === h.team_size_max
+                    ? (h.team_size_max === 1 ? 'Solo' : `Team: ${h.team_size_max}`)
+                    : `Team: ${h.team_size_min}-${h.team_size_max}`;
+            } else {
+                const size = h.team_size_max || h.team_size_min;
+                teamText = size === 1 ? 'Solo' : `Team: ${size}`;
+            }
+            stats.push(`<span class="bento-stat"><span class="stat-icon">👤</span>${teamText}</span>`);
+        }
+
+        return stats.join('');
+    };
+
+    // Format mode display (in-person -> Offline)
+    const formatMode = (m) => {
+        if (!m) return 'Unknown';
+        if (m.toLowerCase() === 'in-person') return 'Offline';
+        return m.charAt(0).toUpperCase() + m.slice(1);
+    };
+
+    // Get source initial
+    const getSourceInitial = (source) => {
+        if (!source) return '?';
+        const initials = {
+            'Devpost': 'D', 'Devfolio': 'Df', 'Unstop': 'U', 'MLH': 'M',
+            'DoraHacks': 'DH', 'Kaggle': 'K', 'HackerEarth': 'HE', 'GeeksforGeeks': 'GfG',
+            'TechGig': 'TG', 'Superteam': 'ST', 'HackQuest': 'HQ', 'DevDisplay': 'DD',
+            'HackCulture': 'HC', 'MyCareerNet': 'MC'
+        };
+        return initials[source] || source.charAt(0).toUpperCase();
+    };
 
     return `
         <article class="bento-card" data-url="${h.url || '#'}">
-            <div class="card-header">
-                <span class="source-badge">${h.source || 'Unknown'}</span>
-                <div class="card-header-right">
-                    <span class="mode-badge ${mode}">${capitalize(mode)}</span>
-                    <button class="bookmark-btn ${isBookmarked ? 'active' : ''}" data-id="${h.id}">
-                        ${isBookmarked ? '★' : '☆'}
-                    </button>
-                </div>
+            <!-- Calendar Badge -->
+            <div class="bento-calendar">
+                <div class="calendar-month">${month}</div>
+                <div class="calendar-day">${day}</div>
             </div>
-            <div class="card-body">
-                <h3 class="card-title">${h.title || 'Untitled'}</h3>
-                <div class="card-meta">
-                    <span class="meta-item" title="Registration Deadline">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:text-bottom;">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        Reg: ${regDeadline}
-                    </span>
-                    <span class="meta-item">${location}</span>
+
+            <!-- Source Icon -->
+            <div class="bento-source-icon" title="${h.source || 'Unknown'}">
+                ${getSourceInitial(h.source)}
+            </div>
+
+            <!-- Content -->
+            <div class="bento-content">
+                <h3 class="bento-title">${h.title || 'Untitled'}</h3>
+                
+                <div class="bento-mode-row">
+                    <span class="bento-mode ${mode}">${formatMode(mode)}</span>
+                    <span class="bento-location">${location}</span>
                 </div>
-                ${(() => {
-            const prize = h.prize_pool;
 
-            // No prize data at all
-            if (!prize) {
-                return `<div class="card-prize tbd">Prize TBD</div>`;
-            }
+                <div class="bento-prize ${prizeInfo.class}">${prizeInfo.text}</div>
 
-            // Check if it's a monetary prize (starts with currency symbol or is a number)
-            const isMonetary = /^[\$€£¥₹][\d,]+/.test(prize);
-
-            if (isMonetary) {
-                // Display monetary prize as-is
-                return `<div class="card-prize">${prize}</div>`;
-            } else {
-                // Non-monetary prize (Shower, Swag, etc.) or zero value
-                const isZeroValue = prize.match(/^[\$€£¥₹]?0(\.0+)?$/);
-                if (isZeroValue) {
-                    return `<div class="card-prize tbd">Prize TBD</div>`;
-                } else {
-                    return `<div class="card-prize non-cash">Non-Cash Prize</div>`;
-                }
-            }
-        })()}
-        
-        <div class="card-stats">
-            ${(() => {
-            const count = parseInt(h.participants_count || 0);
-            const status = calculateStatus(h);
-
-            if (status === 'upcoming' && count === 0) {
-                return `
-                        <div class="card-stat" title="Registration Status">
-                            <span class="stat-icon">⏳</span>
-                            <span>Upcoming</span>
-                        </div>`;
-            }
-
-            if (count > 0) {
-                return `
-                        <div class="card-stat" title="Total Participants">
-                            <span class="stat-icon">👥</span>
-                            <span>${count.toLocaleString()}</span>
-                        </div>`;
-            }
-            return '';
-        })()}
-            
-            ${(h.team_size_min || h.team_size_max) ? `
-                <div class="card-stat" title="Team Size">
-                    <span class="stat-icon">👤</span>
-                    <span>${(() => {
-                if (h.team_size_min && h.team_size_max) {
-                    return h.team_size_min === h.team_size_max ? (h.team_size_max === 1 ? 'Solo' : `Team: ${h.team_size_max}`) : `Team: ${h.team_size_min}-${h.team_size_max}`;
-                }
-                const size = h.team_size_max || h.team_size_min;
-                return size === 1 ? 'Solo' : `Team: ${size}`;
-            })()}</span>
+                <div class="bento-stats-row">
+                    ${getStatsHtml()}
                 </div>
-            ` : ''}
-        </div>
 
-        ${h.tags?.length ? `<div class="card-tags">${h.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                ${h.tags?.length ? `<div class="bento-tags">${h.tags.slice(0, 3).map(t => `<span class="bento-tag">${t}</span>`).join('')}</div>` : ''}
+            </div>
+
+            <!-- Divider -->
+            <div class="bento-divider"></div>
+
+            <!-- Footer -->
+            <div class="bento-footer">
+                <button class="bento-cta">View Details</button>
+                <button class="bento-bookmark ${isBookmarked ? 'active' : ''}" data-id="${h.id}">
+                    ${isBookmarked ? '★' : '☆'}
+                </button>
             </div>
         </article>
     `;

@@ -514,7 +514,7 @@ def scrape_devfolio():
                 
                 raw = {
                     'title': src.get('name'),
-                    'url': f"https://devfolio.co/{src.get('slug')}" if src.get('slug') else None,
+                    'url': f"https://{src.get('slug')}.devfolio.co/" if src.get('slug') else None,
                     'start_date': start_date, 'end_date': end_date,
                     'location': src.get('location') or ('Online' if src.get('is_online_event') else ''),
                     'prize': src.get('prize_amount'),

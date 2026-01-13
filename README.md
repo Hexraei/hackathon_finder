@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.4.2-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.4.3-blue" alt="Version">
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
@@ -65,6 +65,19 @@ python server.py
 ---
 
 ## 📝 Changelog
+
+### Version 0.4.3 (2026-01-14)
+
+**UI Redesign**
+- 🎨 **Bento Card Design**: New card layout with calendar badge, source icon, CTA button.
+- 📅 **Calendar Badge**: Displays month/day in a compact 48×48px badge (top-right).
+- 🏛️ **Source Icons**: Platform initials shown in icon badges (D, Df, U, M, etc.).
+- 🌐 **"Offline" Terminology**: Renamed "In-Person" to "Offline" across UI.
+- ✨ **SVG Logo**: New H-shaped logo in navbar replaces text.
+- 🔘 **View Details Button**: Dedicated CTA button for redirection (card click disabled).
+
+**Bug Fixes**
+- 🔗 **Devfolio URLs**: Fixed URL format from `devfolio.co/slug` to `slug.devfolio.co/`.
 
 ### Version 0.4.2 (2026-01-13)
 
