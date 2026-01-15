@@ -81,84 +81,102 @@
     </section>
 
     <!-- Filter Bar -->
-    <section class="filters">
-        <h2 class="explore-heading">Explore</h2>
-        <div class="filters-content">
-            <div class="filter-pills">
-                <button class="filter-pill active" data-filter="all">All</button>
-                <button class="filter-pill" data-filter="upcoming">Upcoming</button>
-                <button class="filter-pill" data-filter="ongoing">Live Now</button>
-                <button class="filter-pill" data-filter="online">Online</button>
-                <button class="filter-pill" data-filter="in-person">Offline</button>
-            </div>
+    <section class="filters" id="filtersSection">
+        <h2 class="explore-heading" id="exploreHeading">Explore</h2>
+        <div class="filters-content" id="filtersContent">
+            <div class="filters-layout-split">
+                <!-- Left Column: Pills + Sources -->
+                <div class="filters-left-col">
+                    <!-- Row 1: Filter Pills -->
+                    <div class="filter-pills">
+                        <button class="filter-pill active" data-filter="all">All</button>
+                        <button class="filter-pill" data-filter="upcoming">Upcoming</button>
+                        <button class="filter-pill" data-filter="ongoing">Live Now</button>
+                        <button class="filter-pill" data-filter="online">Online</button>
+                        <button class="filter-pill" data-filter="in-person">Offline</button>
+                    </div>
 
-            <!-- Search Row: Source + Keyword + Location + Sort -->
-            <div class="search-row">
-                <!-- Source Filter (Compact) -->
-                <div class="source-filter-container compact">
-                    <button class="source-filter-toggle" id="sourceFilterToggle">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 6h18M7 12h10M11 18h2" />
-                        </svg>
-                        <span>Sources</span>
-                        <span class="source-count" id="sourceCount">(12)</span>
-                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                    <div class="source-filter-panel" id="sourceFilterPanel">
-                        <div class="source-filter-actions">
-                            <button class="source-action-btn" id="selectAllSources">All</button>
-                            <button class="source-action-btn" id="clearAllSources">Clear</button>
+                    <!-- Row 2: Sources Filter -->
+                    <div class="source-filter-container">
+                        <button class="source-filter-toggle" id="sourceFilterToggle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M7 12h10M11 18h2" />
+                            </svg>
+                            <span>Sources</span>
+                            <span class="source-count" id="sourceCount">(12)</span>
+                            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 9 6 6 6-6" />
+                            </svg>
+                        </button>
+                        <div class="source-filter-panel" id="sourceFilterPanel">
+                            <div class="source-filter-actions">
+                                <button class="source-action-btn" id="selectAllSources">All</button>
+                                <button class="source-action-btn" id="clearAllSources">Clear</button>
+                            </div>
+                            <div class="source-checkboxes two-column" id="sourceCheckboxes"></div>
                         </div>
-                        <div class="source-checkboxes two-column" id="sourceCheckboxes"></div>
                     </div>
                 </div>
 
-                <!-- Keyword Search -->
-                <div class="keyword-search-container">
-                    <svg class="keyword-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.35-4.35" />
-                    </svg>
-                    <input type="text" class="keyword-search-input" id="searchInput" placeholder="Search keywords...">
-                </div>
+                <!-- Right Column: Search + Loc/Sort/Count -->
+                <div class="filters-right-col">
+                    <!-- Row 1: Keyword Search -->
+                    <div class="filters-right-row-top">
+                        <div class="keyword-search-container full-width">
+                            <svg class="keyword-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            <input type="text" class="keyword-search-input" id="searchInput"
+                                placeholder="Search keywords...">
+                        </div>
+                    </div>
 
-                <!-- Location Filter (inline) -->
-                <div class="location-filter-inline">
-                    <input type="text" class="location-input-inline" id="locationInput" placeholder="Location...">
-                    <button class="nearby-btn-inline" id="nearbyBtn" title="Use my location">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3" />
-                            <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-                        </svg>
-                    </button>
-                </div>
+                    <!-- Row 2: Location + Sort + Count -->
+                    <div class="filters-right-row-bottom">
+                        <!-- Location Input -->
+                        <div class="location-filter-group">
+                            <input type="text" class="location-input" id="locationInput" placeholder="Location...">
+                            <button class="nearby-btn" id="nearbyBtn" title="Use my location">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+                                </svg>
+                            </button>
+                        </div>
 
-                <!-- Sort Dropdown (inline) -->
-                <div class="sort-dropdown">
-                    <button class="sort-btn" id="sortBtn">
-                        <span>Sort: Highest Prize</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                    <div class="sort-menu" id="sortMenu">
-                        <button class="sort-option" data-sort="latest">Latest</button>
-                        <button class="sort-option" data-sort="deadline">Deadline Soon</button>
-                        <button class="sort-option active" data-sort="prize">Highest Prize</button>
-                        <button class="sort-option" data-sort="title">A-Z</button>
+                        <!-- Sort Dropdown -->
+                        <div class="sort-dropdown">
+                            <button class="sort-btn" id="sortBtn">
+                                <span>Sort: Relevance</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m6 9 6 6 6-6" />
+                                </svg>
+                            </button>
+                            <div class="sort-menu" id="sortMenu">
+                                <button class="sort-option active" data-sort="relevance">Relevance</button>
+                                <button class="sort-option" data-sort="latest">Latest</button>
+                                <button class="sort-option" data-sort="deadline">Deadline Soon</button>
+                                <button class="sort-option" data-sort="prize">Highest Prize</button>
+                            </div>
+                        </div>
+
+                        <!-- Results Count -->
+                        <span class="results-count" id="resultsCount">Loading...</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Results Count Row -->
-            <div class="results-count-row">
-                <span class="results-count" id="resultsCount">Loading...</span>
             </div>
         </div>
     </section>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top-btn" id="scrollTopBtn" title="Back to top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6" />
+        </svg>
+    </button>
+
 
     <!-- Bento Grid -->
     <main class="bento-container">

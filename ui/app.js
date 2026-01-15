@@ -15,7 +15,7 @@ let state = {
     filteredHackathons: [],
     displayedCount: 0,
     currentFilter: 'all',  // Default to all
-    currentSort: 'prize',
+    currentSort: 'relevance',
     searchQuery: '',
     locationFilter: '', // Location filter text
     isLoading: true,
@@ -24,7 +24,89 @@ let state = {
     allSources: []
 };
 
-// ... (lines 26-518 unchanged)
+// === Relevance Score Calculation (Internal) ===
+function calculateRelevanceScore(event) {
+    // Score based on: participants + prize + days until deadline
+    const participants = event.participant_count || 0;
+    const prize = event.prize_pool_numeric || 0;
+
+    // Calculate days until deadline
+    let daysLeft = 0;
+    if (event.deadline || event.date) {
+        const deadlineDate = new Date(event.deadline || event.date);
+        const today = new Date();
+        daysLeft = Math.max(0, Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24)));
+    }
+
+    // Simple scoring: Higher is better
+    // Normalize each factor and weight them
+    const participantScore = Math.min(participants / 500, 1) * 30;  // Max 30 points
+    const prizeScore = Math.min(prize / 100000, 1) * 50;            // Max 50 points  
+    const timeScore = daysLeft > 0 ? Math.min(daysLeft / 30, 1) * 20 : 0; // Max 20 points
+
+    return participantScore + prizeScore + timeScore;
+}
+
+// === Scroll Behavior (Scroll-to-Top + Sticky Filters) ===
+let lastScrollY = 0;
+let filtersSectionTop = 0;
+
+function initScrollBehavior() {
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    const filtersSection = document.getElementById('filtersSection');
+    const filtersContent = document.getElementById('filtersContent');
+    const exploreHeading = document.getElementById('exploreHeading');
+
+    if (filtersSection) {
+        filtersSectionTop = filtersSection.offsetTop;
+    }
+
+    // Scroll-to-top button
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // Handle scroll events
+    window.addEventListener('scroll', () => {
+        const currentY = window.scrollY;
+
+        // Show/hide scroll-to-top button
+        if (scrollTopBtn) {
+            if (currentY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        }
+
+        // Sticky filter on scroll-up only
+        if (filtersContent && filtersSection) {
+            const filterBottom = filtersSectionTop + filtersSection.offsetHeight;
+
+            if (currentY > filterBottom) {
+                // Past the filters
+                if (currentY < lastScrollY) {
+                    // Scrolling UP - show sticky filters
+                    filtersContent.classList.add('sticky-active');
+                    if (exploreHeading) exploreHeading.style.visibility = 'hidden';
+                } else {
+                    // Scrolling DOWN - hide sticky filters
+                    filtersContent.classList.remove('sticky-active');
+                }
+            } else {
+                // Within the filters section - normal behavior
+                filtersContent.classList.remove('sticky-active');
+                if (exploreHeading) exploreHeading.style.visibility = 'visible';
+            }
+        }
+
+        lastScrollY = currentY;
+    });
+}
+
+// ... (rest of file)
 
 async function initializeSourceFilter() {
     // Fetch all sources from API (ensures we show all sources, not just loaded ones)
@@ -107,7 +189,14 @@ async function init() {
 
     // For paginated API, filtered = all loaded events
     state.filteredHackathons = state.hackathons;
+
+    // Apply relevance sort to initial load
+    if (state.currentSort === 'relevance') {
+        state.filteredHackathons.sort((a, b) => calculateRelevanceScore(b) - calculateRelevanceScore(a));
+    }
+
     bindEvents();
+    initScrollBehavior();
 
     showLoading(false);
     renderHackathons();
@@ -120,6 +209,23 @@ function bindEvents() {
 
     elements.filterPills.forEach(pill => pill.addEventListener('click', () => handleFilterChange(pill)));
 
+    // Source Filter Toggle
+    elements.sourceFilterToggle?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSourceFilter();
+    });
+
+    // Close Source Filter when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.sourceFilterPanel?.contains(e.target) && !elements.sourceFilterToggle?.contains(e.target)) {
+            elements.sourceFilterPanel?.classList.remove('show');
+            elements.sourceFilterToggle?.classList.remove('active');
+        }
+    });
+
+    elements.selectAllSources?.addEventListener('click', selectAllSources);
+    elements.clearAllSources?.addEventListener('click', clearAllSources);
+
     elements.sortBtn?.addEventListener('click', toggleSortMenu);
     elements.sortOptions.forEach(opt => opt.addEventListener('click', () => handleSortChange(opt)));
 
@@ -129,10 +235,6 @@ function bindEvents() {
         }
     });
 
-    // Source filter events
-    elements.sourceFilterToggle?.addEventListener('click', toggleSourceFilter);
-    elements.selectAllSources?.addEventListener('click', selectAllSources);
-    elements.clearAllSources?.addEventListener('click', clearAllSources);
 
     // Location filter events
     elements.locationInput?.addEventListener('input', debounce(handleLocationFilter, 500));
@@ -218,7 +320,7 @@ async function fetchFilteredEvents() {
     const params = new URLSearchParams();
     params.set('page', '1');
     params.set('page_size', '100'); // Fetch more when filtering
-    params.set('sort_by', state.currentSort === 'deadline' ? 'date' : state.currentSort);
+    params.set('sort_by', state.currentSort === 'deadline' ? 'date' : (state.currentSort === 'relevance' ? 'prize' : state.currentSort));
 
     // Status filter
     if (state.currentFilter === 'upcoming' || state.currentFilter === 'ongoing') {
@@ -261,6 +363,11 @@ async function fetchFilteredEvents() {
     let filtered = [...state.hackathons];
     if (state.selectedSources.size > 0 && state.selectedSources.size < state.allSources.length) {
         filtered = filtered.filter(h => state.selectedSources.has(h.source));
+    }
+
+    // Apply relevance sort client-side if selected
+    if (state.currentSort === 'relevance') {
+        filtered.sort((a, b) => calculateRelevanceScore(b) - calculateRelevanceScore(a));
     }
 
     state.filteredHackathons = filtered;
@@ -871,6 +978,12 @@ window.resetFilters = resetFilters;
 function renderSourceCheckboxes() {
     if (!elements.sourceCheckboxes) return;
 
+    console.log('Rendering sources:', state.allSources);
+    if (!state.allSources || state.allSources.length === 0) {
+        elements.sourceCheckboxes.innerHTML = '<div style="padding:8px;">No sources found</div>';
+        return;
+    }
+
     elements.sourceCheckboxes.innerHTML = state.allSources.map(source => `
         <label class="source-checkbox-item">
             <input 
@@ -879,29 +992,19 @@ function renderSourceCheckboxes() {
                 ${state.selectedSources.has(source) ? 'checked' : ''}
                 onchange="handleSourceChange(this)"
             />
-            <label>${source}</label>
+            <span style="font-size:14px;">${source}</span>
         </label>
     `).join('');
 }
 
-function toggleSourceFilter() {
-    elements.sourceFilterToggle?.classList.toggle('active');
-    elements.sourceFilterPanel?.classList.toggle('active');
-}
-
 function handleSourceChange(checkbox) {
     const source = checkbox.value;
-
     if (checkbox.checked) {
         state.selectedSources.add(source);
     } else {
         state.selectedSources.delete(source);
     }
-
-    // Save to localStorage
     localStorage.setItem('selectedSources', JSON.stringify([...state.selectedSources]));
-
-    // Update UI and re-filter
     updateSourceCount();
     applyFiltersAndSort();
     renderHackathons();
@@ -933,5 +1036,64 @@ function updateSourceCount() {
 
 // Make handleSourceChange global
 window.handleSourceChange = handleSourceChange;
-// Make handleSourceChange global
-window.handleSourceChange = handleSourceChange;
+
+function toggleSourceFilter() {
+    console.log('Toggling source filter. Count:', state.allSources.length);
+    elements.sourceFilterToggle?.classList.toggle('active');
+    // Use 'show' class as defined in CSS
+    elements.sourceFilterPanel?.classList.toggle('show');
+    if (elements.sourceFilterPanel?.classList.contains('show')) {
+        console.log('Panel shown. InnerHTML:', elements.sourceCheckboxes.innerHTML.substring(0, 50));
+    }
+}
+
+function initScrollBehavior() {
+    let lastScrollY = window.scrollY;
+    const filtersContent = document.getElementById('filtersContent');
+    const filtersSection = document.getElementById('filtersSection');
+    const exploreHeading = document.getElementById('exploreHeading');
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+    // Initial check
+    if (window.scrollY > 300) {
+        scrollTopBtn?.classList.add('visible');
+    }
+
+    window.addEventListener('scroll', () => {
+        const currentY = window.scrollY;
+
+        // Sticky Filter Logic (Show ONLY on scroll UP)
+        if (filtersSection && filtersContent) {
+            const sectionRect = filtersSection.getBoundingClientRect();
+            // "Past" filters if the bottom of the section is above viewport top (scrolled past)
+            // Or use a simpler logic: scrollY > filtersSection.offsetTop + height
+            const isPast = (sectionRect.bottom < 60); // 60px buffer
+
+            if (isPast) {
+                if (currentY < lastScrollY) {
+                    filtersContent.classList.add('sticky-active');
+                    if (exploreHeading) exploreHeading.style.visibility = 'hidden';
+                } else {
+                    filtersContent.classList.remove('sticky-active');
+                }
+            } else {
+                filtersContent.classList.remove('sticky-active');
+                if (exploreHeading) exploreHeading.style.visibility = 'visible';
+            }
+        }
+
+        // Scroll Top Button Logic
+        if (currentY > 300) {
+            scrollTopBtn?.classList.add('visible');
+        } else {
+            scrollTopBtn?.classList.remove('visible');
+        }
+
+        lastScrollY = currentY;
+    }, { passive: true });
+
+    // Scroll to Top Click Handler
+    scrollTopBtn?.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}

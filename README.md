@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.5.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.5.2-blue" alt="Version">
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
@@ -67,6 +67,21 @@ python server.py
 ---
 
 ## 📝 Changelog
+
+### Version 0.5.2 (2026-01-16)
+
+**UI Layout Overhaul (V4)**
+- 🔧 **Split Column Filter Layout**: Reorganized filter bar into Left Column (Pills, Sources) and Right Column (Search, Location/Sort/Count).
+- 📍 **Sticky Header on Scroll-Up**: Filters now appear as a floating island when scrolling up.
+- ⬆️ **Scroll-to-Top Button**: Black arrow icon with purple hover effect, appears after 300px scroll.
+- 🏷️ **Explore Heading**: Increased top margin (96px) for better visual separation.
+- 🖊️ **Location Input Border**: Added distinct visible border for clarity.
+
+**Bug Fixes**
+- 🐛 **Fixed Broken Init**: Restored missing `updateSourceCount`, `handleSourceChange`, `selectAllSources`, `clearAllSources` functions.
+- 🐛 **Fixed Sources Panel**: Corrected CSS class mismatch (`.active` → `.show`) that prevented panel from expanding.
+- 🐛 **Fixed Double-Click Bug**: Removed duplicate event listener bindings for source filter toggle.
+- 🐛 **Fixed Corrupted CSS**: Cleaned up malformed CSS at end of styles.css.
 
 ### Version 0.5.1 (2026-01-15)
 
