@@ -1,10 +1,8 @@
-<p align="center">
-  <h1 align="center">🔍 HackFind</h1>
-  <p align="center">
-    <strong>The Hackathon Discovery Platform</strong><br>
-    <em>Aggregating 900+ hackathons from 15+ sources into one unified experience.</em>
-  </p>
-</p>
+# HackFind
+
+**The Hackathon Discovery Platform**
+
+Aggregating 1300+ hackathons from 15+ sources into one unified experience.
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.6.0-blue" alt="Version">
@@ -15,319 +13,185 @@
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Changelog](#-changelog)
-- [Data Sources](#-data-sources)
-- [Project Structure](#-project-structure)
-- [Roadmap](#-roadmap)
-- [Product Vision](#-product-vision-v10)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Changelog](#changelog)
+- [Data Sources](#data-sources)
+- [Architecture](#architecture)
+- [Roadmap](#roadmap)
 - [License](#license)
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔄 **Multi-Source Aggregation** | Devpost, Devfolio, Unstop, MLH, DoraHacks, and more. |
-| 🎯 **Smart Date Parsing** | Handles ISO, Epoch, and complex date ranges. |
-| ⚡ **Direct API Integration** | Fast, accurate data fetching for Unstop & Devfolio. |
-| 🔎 **Hybrid Search** | Vector (Semantic) + Keyword (Lexical) for best-in-class relevance. |
-| 📊 **Normalized Data** | Consistent schema across all sources. |
-| 🧠 **AI Semantic Search** | ChromaDB + MiniLM for natural language queries. |
-| 🤖 **AI-Powered Query Parser** | Natural language to structured filters using Gemini Flash. |
-| ⚛️ **React Frontend** | Modern component-based UI with Vite dev server. |
+| **Multi-Source Aggregation** | Devpost, Devfolio, Unstop, MLH, DoraHacks, Kaggle, and 9 more platforms |
+| **AI Semantic Search** | Natural language queries powered by ChromaDB + MiniLM embeddings |
+| **Query Parser** | Gemini Flash extracts structured filters from conversational input |
+| **Hybrid Search** | Combines vector (semantic) and keyword (lexical) search with rank fusion |
+| **Direct API Integration** | Fast data fetching for Unstop and Devfolio via official APIs |
+| **React Frontend** | Modern component-based UI with Vite dev server |
+| **Normalized Schema** | Consistent data model across all sources |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# 1. Clone the repository
+# Clone and install
 git clone https://github.com/yourusername/hackfind.git
 cd hackfind
-
-# 2. Install dependencies
 pip install -r requirements.txt
 playwright install chromium
 
-# 3. Run the scraper
+# Run scraper
 python scrape_all.py
 
-# 4. Start the backend server (set Gemini API key for AI search)
+# Start backend (requires Gemini API key for AI search)
 export GEMINI_API_KEY="your-api-key"
 python server.py
 
-# 5. Start React dev server (optional)
+# Start React dev server (optional)
 cd ui-react && npm install && npm run dev
-
-# 6. Open in browser
-# → Original UI: http://localhost:8000
-# → React UI: http://localhost:5173
-# → API Docs: http://localhost:8000/docs
 ```
+
+**Access Points:**
+- Original UI: http://localhost:8000
+- React UI: http://localhost:5173
+- API Docs: http://localhost:8000/docs
 
 ---
 
-## 📝 Changelog
+## Changelog
 
-### Version 0.6.0 (2026-01-17)
+### 0.6.0 (2026-01-17)
 
 **React Migration**
-- ⚛️ **New React Frontend**: Migrated from vanilla HTML/CSS/JS to Vite + React 19.
-- 📦 **Component Architecture**: 12 modular components (Header, Hero, FilterBar, HackathonCard, etc.).
-- 🪝 **Custom Hooks**: `useHackathons`, `useAISearch`, `useBookmarks`, `useScrollBehavior`.
-- 🔄 **Paginated API Loading**: Fetches all 1347 hackathons (200 per page).
-- 🎨 **Preserved Styling**: Original CSS migrated as `global.css`.
+- Migrated frontend from vanilla HTML/CSS/JS to Vite + React 19
+- Created 12 modular components: Header, Hero, FilterBar, HackathonCard, etc.
+- Implemented custom hooks: `useHackathons`, `useAISearch`, `useBookmarks`, `useScrollBehavior`
+- Added paginated API loading for all 1347 hackathons (200 per page)
+- Preserved original CSS as `global.css`
 
 **UI Improvements**
-- 📐 **4-Column Grid**: Fixed responsive grid layout (4 → 3 → 2 → 1 columns).
-- 🏷️ **Card Footer**: Horizontal divider + View Details button + Star bookmark (★/☆).
-- ⭐ **Bookmark Active State**: Only icon color changes (gold), no background change.
-- 📏 **Aligned Filters**: Source dropdown height matches location input (36px).
-- 🔲 **Location Border**: Added visible border to location input field.
+- 4-column responsive grid layout (4/3/2/1 columns at breakpoints)
+- Card footer with horizontal divider, View Details button, and star bookmark
+- Bookmark active state changes only icon color (gold)
+- Aligned source filter height with location input (36px)
+- Added visible border to location input
 
 **Bug Fixes**
-- 🐛 **Fixed Location Parsing**: Handles stringified JSON objects like `{'icon': 'globe'}`.
-- 🐛 **Fixed Card Classes**: Changed from `card-*` to `bento-*` to match CSS.
-
-### Version 0.5.2 (2026-01-16)
-
-**UI Layout Overhaul (V4)**
-- 🔧 **Split Column Filter Layout**: Reorganized filter bar into Left Column (Pills, Sources) and Right Column (Search, Location/Sort/Count).
-- 📍 **Sticky Header on Scroll-Up**: Filters now appear as a floating island when scrolling up.
-- ⬆️ **Scroll-to-Top Button**: Black arrow icon with purple hover effect, appears after 300px scroll.
-- 🏷️ **Explore Heading**: Increased top margin (96px) for better visual separation.
-- 🖊️ **Location Input Border**: Added distinct visible border for clarity.
-
-**Bug Fixes**
-- 🐛 **Fixed Broken Init**: Restored missing `updateSourceCount`, `handleSourceChange`, `selectAllSources`, `clearAllSources` functions.
-- 🐛 **Fixed Sources Panel**: Corrected CSS class mismatch (`.active` → `.show`) that prevented panel from expanding.
-- 🐛 **Fixed Double-Click Bug**: Removed duplicate event listener bindings for source filter toggle.
-- 🐛 **Fixed Corrupted CSS**: Cleaned up malformed CSS at end of styles.css.
-
-### Version 0.5.1 (2026-01-15)
-
-**Major UI Revamp**
-- 🎨 **AI Search Hero**: Purple gradient animated border with "Ask AI" button as primary focus.
-- ✨ **Thinking Steps**: Visual feedback during AI search (Understanding → Searching → Analyzing → Recommending).
-- 🏷️ **AI Reasons**: Each recommendation shows why it matched the query.
-- 📍 **"Explore" Section**: New heading separates AI hero from manual filters.
-
-**Layout Improvements**
-- 🔧 **Inline Search Row**: Sources, Keywords, Location, and Sort now on same row.
-- 📐 **Optimized Widths**: Keyword search (300px max), Location (180px).
-- 📱 **Responsive Layout**: `flex-wrap` prevents overflow on smaller screens.
-- 🐛 **Fixed Duplicate Function**: Removed duplicate `handleAISearch` causing input reading bug.
-
-**AI Search v2 (Query Parser)**
-- 🧠 **Gemini Flash Integration**: Parses natural language queries into structured filters.
-- ⚡ **Minimal Tokens**: ~100 tokens per query for cost-effective AI parsing.
-- 🎯 **Smart Filters**: Extracts mode, tags, prize requirements, location from queries.
-
-### Version 0.5.0 (2026-01-14)
-
-**MLH & Data Accuracy**
-- 🏆 **MLH Scraper Overhaul**: Rewrote scraper to support new MLH Tailwind structure. Auto-extracts dates, locations, and modes correctly.
-- ⚡ **Deep Enrichment**: Automatically fetches Prize pools, Participant counts, and localized details for MLH events via Devpost/Devfolio integrations.
-- ✅ **Fixed Kaggle**: Resolved title truncation issues and improved data extraction.
-
-**UI Improvements**
-- 🖼️ **Source Logos**: Added real platform favicons (Devpost, MLH, etc.) to event cards.
-- 🧹 **Clean Interface**: Hide redundant "Location" text when mode is Online.
-- 🔢 **Sorted by Value**: Default sort order changed to "Highest Prize".
-
-### Version 0.4.3 (2026-01-14)
-
-**UI Redesign**
-- 🎨 **Bento Card Design**: New card layout with calendar badge, source icon, CTA button.
-- 📅 **Calendar Badge**: Displays month/day in a compact 48×48px badge (top-right).
-- 🏛️ **Source Icons**: Platform initials shown in icon badges (D, Df, U, M, etc.).
-- 🌐 **"Offline" Terminology**: Renamed "In-Person" to "Offline" across UI.
-- ✨ **SVG Logo**: New H-shaped logo in navbar replaces text.
-- 🔘 **View Details Button**: Dedicated CTA button for redirection (card click disabled).
-
-**Bug Fixes**
-- 🔗 **Devfolio URLs**: Fixed URL format from `devfolio.co/slug` to `slug.devfolio.co/`.
-
-### Version 0.4.2 (2026-01-13)
-
-**Framework Migration**
-- 🚀 **Flask → FastAPI**: Migrated entire backend from Flask to FastAPI.
-- 📚 **Swagger Docs**: Auto-generated API documentation at `/docs`.
-- ⚡ **ASGI Server**: Now using Uvicorn for better async performance.
-- 🔄 **Zero Breaking Changes**: All API endpoints maintain backward compatibility.
-
-**Technical**
-- Updated `requirements.txt`: Replaced `flask>=3.0.0` with `fastapi>=0.115.0` + `uvicorn[standard]>=0.32.0`
-- Server now runs on port `8000` (was `8001`)
-- All routes migrated: `/`, `/styles.css`, `/app.js`, `/api/hackathons`, `/api/search/ai`, `/api/stats`
-
-### Version 0.4.1 (2026-01-13)
-
-**Unstop Data Accuracy**
-- 🌍 **Mode Detection**: robust hybrid/online/offline detection using API region data.
-- 👥 **Real-time Participants**: Fetches live registration counts (`registerCount`).
-- 📅 **Date Precision**: Correctly prioritizes Registration Deadline over Event End Date.
-- 🔢 **Team Size**: Accurate parsing of team allocations (e.g., "1-4 Members", "Solo").
-
-**Frontend Enhancements**
-- ⏳ **Smart Status**: displays "Upcoming" icon for events with 0 participants.
-- 👥 **Participant Counts**: Shows live participant numbers for ongoing events.
-- 🧹 **Clean Defaults**: "All Sources" and "All Statuses" selected by default on refresh.
-
-### Version 0.4.0 (2026-01-13)
-
-**Major Enhancements**
-- 🧠 **Hybrid AI Search**: Combined Vector Search (Semantic) with Keyword Search (Lexical) using Reciprocal Rank Fusion.
-  - Improved "loose relevance" pass rate from 26% to 38%.
-  - Better handling of exact technical terms (e.g., "frontend", "web3").
-- ⚡ **Unstop Data Overhaul**: Replaced browser scraping with Direct API Polling.
-  - Scrapes 415 events in seconds (vs 30 mins).
-  - Captures exact **Registration Deadlines** (fixing "Upcoming" vs "Ended" status accuracy).
-  - Retrieves full rich-text descriptions for superior search context.
-
-**UI / UX**
-- 📅 **Registration Deadlines**: Frontend now prioritizes showing "Reg: [Deadline]" to clearly indicate entry cutoffs.
-- 🎨 **Status Badges**: Improved accuracy of "Live Now" vs "Upcoming" based on refined date data.
-
-**Technical**
-- 🧹 **Codebase Cleanup**: Removed legacy browser automation scripts for Unstop.
-- 🔄 **Optimization**: Parallelized API fetching for maximum throughput.
-
-### Version 0.3.2 (2026-01-12)
-
-**New Features**
-- 🎯 **Source Filter**: Multi-select checkbox filter for all 14 sources (Devpost, Unstop, MLH, Kaggle, etc.)
-- 📊 Collapsible filter panel with "Select All" / "Clear All" buttons
-- 💾 Source filter selections persist across page refreshes (localStorage)
-- 🔄 Source filter works seamlessly with existing status, mode, and search filters
-
-**Data Extraction Improvements**
-- ✅ **Unstop**: Fixed prize extraction from `prizes` array (₹ currency support)
-- ✅ **Unstop**: Fixed date extraction from `regnRequirements` (start_regn_dt, end_regn_dt)
-- ✅ **Unstop**: Fixed location extraction from `address_with_country_logo` (city, state)
-- 📈 **Unstop**: Now showing 98% valid dates, 62% valid prizes, 100% valid locations (400+ events)
-- 🔧 Added generic nav link filters for TechGig and HackerEarth scrapers
-
-**Prize Display Improvements**
-- 💰 Smart prize display with 3 modes: monetary prizes (e.g., ₹15,000), "Prize TBD" for missing prizes, "Non-Cash Prize" for non-monetary rewards
-- 🎨 Styled TBD and non-cash prizes with muted colors to distinguish from monetary prizes
-- 🔢 Changed prize format from K/M abbreviations to comma-separated numbers for better readability
-- ✅ Fixed $0/₹0 prizes to show as "Prize TBD" instead of displaying zero amounts
-
-**Bug Fixes**
-- Fixed source filter initialization to validate localStorage sources against current data
-- Fixed text variable scope issues in TechGig scraper
-- Added debug logging for source filter troubleshooting
-
-**Technical**
-- Enhanced `scrape_unstop` with nested JSON field mapping
-- Improved scraper robustness with better error handling
-- Added responsive grid layout for source checkboxes (mobile-friendly)
-
-### Version 0.3.1 (2026-01-12)
-
-**UI Improvements**
-- Removed all emojis from dashboard for cleaner, professional appearance
-- Added date range display showing both start and end dates
-- Repositioned bookmark buttons to card headers for always-visible access
-- Enhanced mode badges with colored backgrounds
-
-**Filter Fixes**
-- Implemented client-side status calculation for upcoming/ongoing filters
-- Fixed mode filters to handle case variations and partial matches
-- Status now calculated dynamically based on current date (no database updates needed)
-- All filters now work with instant, client-side filtering
-
-**Data Quality**
-- Fixed currency detection to preserve original symbols (₹, €, £, ¥, $) from source data
-- Fixed mode detection to properly handle location dictionaries
-- Corrected 119 misclassified events (online events marked as in-person)
-- Database migration to fix existing data inconsistencies
-
-**Technical**
-- Mode detection now extracts location strings from dictionaries correctly
-- Currency normalization preserves source currency instead of forcing USD
-- Filter logic uses case-insensitive matching with partial string support
-
-### Version 0.3: AI Search ✅ IMPLEMENTED
-| Feature | Tech Stack | Status |
-|---------|------------|:------:|
-| 🧠 AI Search | ChromaDB + MiniLM | ✅ Done |
-| 📊 961 Events Vectorized | Sentence-Transformers | ✅ Done |
-
-**API Endpoint**: `GET /api/search/ai?q=<natural language query>`
-
-### Version 0.3: Mobile & Push
-| Feature | Tech Stack | Priority |
-|---------|------------|:--------:|
-| 📱 Mobile App | Flutter | High |
-| ⚡ Magic Fill | WebView JS Injection | Medium |
-| 🔔 Push Notifications | Firebase FCM | Medium |
-
-### Version 0.4: Intelligence & Personalization
-| Feature | Description |
-|---------|-------------|
-| 🌍 **Geographic Personalization** | Auto-detect user location; prioritize country-specific platforms (Unstop for India, MLH for USA). |
-| 🎯 **Smart Ranking** | Offline events: local first. Online events: high-stakes global hackathons. |
-| 🌐 **Global Platform Expansion** | Add region-specific scrapers (Europe: HackZurich, APAC: local platforms, Africa: AfriHacks). |
-| 📈 **Win Probability** | `Prize ÷ Participants` algorithm. |
-| ⏰ **Deadline Tracker** | Watch events for updates. |
-| 👥 **Team Matchmaking** | Connect hackers by skills. |
-| ✅ **Verified Organizers** | Trust badges for reliable hosts. |
-| 📍 **Proximity Bonus** | Rank in-person events by distance from user. |
-
-### Infrastructure
-| Current | Target |
-|---------|--------|
-| SQLite | TiDB Cloud |
-| Flask | FastAPI ✅ |
-| Vanilla JS | Next.js |
+- Fixed location parsing for stringified JSON objects
+- Fixed card CSS class names (`card-*` to `bento-*`)
 
 ---
 
-## 🎯 Product Vision (V1.0)
+### 0.5.2 (2026-01-16)
 
-**The Complete Hackathon Companion** — One app for the entire journey.
+**UI Layout**
+- Split column filter layout: Pills/Sources (left), Search/Location/Sort (right)
+- Sticky header on scroll-up with floating island effect
+- Scroll-to-top button with hover effect
+
+**Bug Fixes**
+- Restored missing source filter functions
+- Fixed CSS class mismatch for source panel expansion
+- Removed duplicate event listener bindings
+
+---
+
+### 0.5.1 (2026-01-15)
+
+**UI Revamp**
+- AI search hero section with animated gradient border
+- Thinking steps visual feedback during AI search
+- AI reasons displayed on recommendation cards
+- Inline search row layout
+
+**AI Search v2**
+- Gemini Flash integration for query parsing
+- Extracts mode, tags, prize requirements, and location from natural language
+
+---
+
+### 0.5.0 (2026-01-14)
+
+**Data Accuracy**
+- MLH scraper overhaul for new Tailwind structure
+- Deep enrichment via Devpost/Devfolio integrations
+- Fixed Kaggle title truncation
+
+**UI**
+- Source logos on event cards
+- Default sort by highest prize
+
+---
+
+### 0.4.x (2026-01-13 - 2026-01-14)
+
+- Bento card design with calendar badge and source icons
+- Flask to FastAPI migration with Swagger docs
+- Unstop API integration for accurate data
+- Hybrid search with reciprocal rank fusion
+
+---
+
+### 0.3.x (2026-01-12)
+
+- Source filter with multi-select checkboxes
+- Prize display improvements (TBD, non-cash, monetary)
+- AI semantic search with ChromaDB + MiniLM
+- 961 events vectorized
+
+---
+
+## Data Sources
+
+| Platform | Method | Events |
+|----------|--------|--------|
+| Devpost | Scraper | ~400 |
+| Unstop | API | ~415 |
+| Devfolio | API | ~200 |
+| MLH | Scraper | ~150 |
+| Kaggle | Scraper | ~50 |
+| DoraHacks | Scraper | ~40 |
+| Others | Various | ~100 |
+
+---
+
+## Architecture
 
 ```
-DISCOVER → PREPARE → EXECUTE → SUBMIT → REFLECT
+hackfind/
+├── scrapers/           # Platform-specific scrapers
+├── database/           # SQLite + ChromaDB vector store
+├── utils/              # Embeddings, parsing, helpers
+├── ui/                 # Original vanilla HTML/CSS/JS
+├── ui-react/           # React + Vite frontend
+│   ├── src/components/ # 12 React components
+│   ├── src/hooks/      # Custom hooks
+│   ├── src/utils/      # API, formatters
+│   └── src/styles/     # Global CSS
+└── server.py           # FastAPI backend
 ```
 
-### Lifecycle Features
+---
 
-| Phase | Key Features |
-|:------|:-------------|
-| 🔍 **Discover** | AI Search, Win Probability, Watchlist, Team Finder |
-| 📝 **Prepare** | Dashboard, Team Chat, Calendar Sync, Mentor Booking |
-| ⚡ **Execute** | Live Schedule, Task Board, Progress Tracker |
-| 🚀 **Submit** | Deadline Alerts, Link Validator, Demo Recorder |
-| 🏆 **Reflect** | Result Tracker, Hacker Stats, Portfolio Export |
+## Roadmap
 
-### Core Philosophy
-
-> *"Every feature asks: Does this move the user closer to clicking 'Apply'?"*
-
-### Competitive Edge
-
-| Competitor | Gap |
-|:-----------|:----|
-| Devpost | Single source. No lifecycle. |
-| Notion | Generic. No hackathon workflows. |
-| **HackFind** | **Full lifecycle. 15+ sources. AI-powered.** |
+| Version | Focus |
+|---------|-------|
+| 0.7 | Production build, server integration |
+| 0.8 | Mobile responsive polish |
+| 0.9 | User accounts, saved searches |
+| 1.0 | Team matchmaking, notifications |
 
 ---
 
 ## License
 
 MIT © 2026 HackFind
-
----
-
-<p align="center">
-  <strong>Built with ❤️ for hackers, by hackers.</strong>
-</p>
