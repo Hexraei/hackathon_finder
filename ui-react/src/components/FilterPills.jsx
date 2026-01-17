@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button';
+
 const FILTERS = [
     { id: 'all', label: 'All' },
     { id: 'upcoming', label: 'Upcoming' },
@@ -8,16 +10,18 @@ const FILTERS = [
 
 export default function FilterPills({ currentFilter, onFilterChange }) {
     return (
-        <div className="filter-pills">
+        <div className="flex items-center gap-2 flex-wrap">
             {FILTERS.map(filter => (
-                <button
+                <Button
                     key={filter.id}
-                    className={`filter-pill ${currentFilter === filter.id ? 'active' : ''}`}
+                    variant={currentFilter === filter.id ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
                     data-filter={filter.id}
                     onClick={() => onFilterChange(filter.id)}
                 >
                     {filter.label}
-                </button>
+                </Button>
             ))}
         </div>
     );

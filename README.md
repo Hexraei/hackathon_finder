@@ -5,7 +5,7 @@
 Aggregating 1300+ hackathons from 15+ sources into one unified experience.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.6.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.6.1-blue" alt="Version">
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
   <img src="https://img.shields.io/badge/react-19-61dafb" alt="React">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
@@ -59,6 +59,11 @@ python server.py
 cd ui-react && npm install && npm run dev
 ```
 
+**Tech Stack:**
+- **Frontend:** React 19, Vite, Tailwind CSS v4, shadcn/ui
+- **Backend:** FastAPI, Python 3.9+
+- **Database:** SQLite, ChromeDB (Vector Search)
+
 **Access Points:**
 - Original UI: http://localhost:8000
 - React UI: http://localhost:5173
@@ -68,14 +73,30 @@ cd ui-react && npm install && npm run dev
 
 ## Changelog
 
+### 0.6.1 (2026-01-17)
+
+**Scraper Improvements**
+- **Maximized Limits**: Scrapers now fetch thousands of events deep (30 pages for Unstop/Devpost).
+- **Quality Filter**: Implemented strict filtering to prevent saving "ended" events or those with past registration deadlines.
+- **Kaggle Upgrade**: Detailed scraping via browser to extract exact deadlines, description, and team size.
+- **Database Cleanup**: Automated removal of historical events to keep the database fresh.
+
+**Refined defaults**
+- Frontend defaults to Unstop, Devpost, Devfolio, and DevDisplay on load.
+
+---
+
 ### 0.6.0 (2026-01-17)
 
-**React Migration**
-- Migrated frontend from vanilla HTML/CSS/JS to Vite + React 19
+**Tech Stack Migration**
+- **Tailwind CSS v4**: completely replaced custom CSS with utility-first styling.
+- **shadcn/ui**: Integrated accessible component library (Card, Button, Badge, etc.).
+- **Vite + React 19**: Migrated from vanilla HTML/JS for better performance and modularity.
+
+**Frontend Features**
 - Created 12 modular components: Header, Hero, FilterBar, HackathonCard, etc.
 - Implemented custom hooks: `useHackathons`, `useAISearch`, `useBookmarks`, `useScrollBehavior`
 - Added paginated API loading for all 1347 hackathons (200 per page)
-- Preserved original CSS as `global.css`
 
 **UI Improvements**
 - 4-column responsive grid layout (4/3/2/1 columns at breakpoints)
@@ -151,14 +172,15 @@ cd ui-react && npm install && npm run dev
 
 ## Data Sources
 
-| Platform | Method | Events |
+| Platform | Method | Events (Est) |
 |----------|--------|--------|
-| Devpost | Scraper | ~400 |
-| Unstop | API | ~415 |
-| Devfolio | API | ~200 |
-| MLH | Scraper | ~150 |
-| Kaggle | Scraper | ~50 |
-| DoraHacks | Scraper | ~40 |
+| Unstop | API | ~3000 |
+| Devpost | Scraper | ~1500 |
+| Devfolio | API | ~1000 |
+| MLH | Scraper | ~170 |
+| Kaggle | Scraper | ~120 |
+| DoraHacks | Scraper | ~50 |
+| DevDisplay| Browser| ~30 |
 | Others | Various | ~100 |
 
 ---

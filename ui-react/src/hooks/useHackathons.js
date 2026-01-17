@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchHackathons, fetchSources } from '../utils/api';
 import { calculateStatus, calculateRelevanceScore } from '../utils/formatters';
 
-// Load all hackathons at once (no pagination)
+const ITEMS_PER_PAGE = 100;
 
 export function useHackathons() {
     const [hackathons, setHackathons] = useState([]);
     const [filteredHackathons, setFilteredHackathons] = useState([]);
-    const [displayedCount, setDisplayedCount] = useState(0);
+    const [displayedCount, setDisplayedCount] = useState(ITEMS_PER_PAGE);
     const [isLoading, setIsLoading] = useState(true);
     const [allSources, setAllSources] = useState([]);
     const [selectedSources, setSelectedSources] = useState(new Set());
@@ -17,8 +17,10 @@ export function useHackathons() {
     const [currentSort, setCurrentSort] = useState('relevance');
     const [searchQuery, setSearchQuery] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
+    // Default sources to show on load
+    const DEFAULT_SOURCES = ['Unstop', 'Devpost', 'Devfolio', 'DevDisplay'];
 
-    // Fetch initial data
+    // Fetch initial data in background
     useEffect(() => {
         async function loadData() {
             setIsLoading(true);
@@ -28,12 +30,14 @@ export function useHackathons() {
                     const sourcesData = await fetchSources();
                     const sources = sourcesData.sources || [];
                     setAllSources(sources);
-                    setSelectedSources(new Set(sources));
+                    // Default to only selected sources
+                    const defaultSet = new Set(sources.filter(s => DEFAULT_SOURCES.includes(s)));
+                    setSelectedSources(defaultSet.size > 0 ? defaultSet : new Set(sources));
                 } catch {
                     console.log('Sources API not available, will extract from events');
                 }
 
-                // Fetch hackathons
+                // Fetch hackathons (all pages in background)
                 const data = await fetchHackathons({ sortBy: 'prize' });
                 const events = data.events || [];
                 setHackathons(events);
@@ -42,7 +46,9 @@ export function useHackathons() {
                 if (allSources.length === 0) {
                     const extractedSources = [...new Set(events.map(h => h.source).filter(Boolean))].sort();
                     setAllSources(extractedSources);
-                    setSelectedSources(new Set(extractedSources));
+                    // Default to only selected sources
+                    const defaultSet = new Set(extractedSources.filter(s => DEFAULT_SOURCES.includes(s)));
+                    setSelectedSources(defaultSet.size > 0 ? defaultSet : new Set(extractedSources));
                 }
             } catch (error) {
                 console.error('Failed to load hackathons:', error);
@@ -53,7 +59,7 @@ export function useHackathons() {
         loadData();
     }, []);
 
-    // Apply filters and sort whenever dependencies change
+    // Apply filters and sort (client-side on all data)
     useEffect(() => {
         let filtered = [...hackathons];
 
@@ -106,16 +112,31 @@ export function useHackathons() {
         }
 
         setFilteredHackathons(filtered);
-        // Show all filtered hackathons (no pagination)
-        setDisplayedCount(filtered.length);
+        // Reset to first page when filters change
+        setDisplayedCount(ITEMS_PER_PAGE);
     }, [hackathons, selectedSources, allSources.length, currentFilter, currentSort, searchQuery, locationFilter]);
 
-    // Load more
+    // Load more for infinite scroll
     const loadMore = useCallback(() => {
-        setDisplayedCount(prev => Math.min(prev + ITEMS_PER_LOAD, filteredHackathons.length));
+        setDisplayedCount(prev => Math.min(prev + ITEMS_PER_PAGE, filteredHackathons.length));
     }, [filteredHackathons.length]);
 
-    // Get displayed hackathons
+    // Infinite scroll observer
+    const observerRef = useRef(null);
+    const lastCardRef = useCallback((node) => {
+        if (isLoading) return;
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && displayedCount < filteredHackathons.length) {
+                loadMore();
+            }
+        });
+
+        if (node) observerRef.current.observe(node);
+    }, [isLoading, displayedCount, filteredHackathons.length, loadMore]);
+
+    // Get displayed hackathons (paginated view)
     const displayedHackathons = filteredHackathons.slice(0, displayedCount);
     const hasMore = displayedCount < filteredHackathons.length;
 
@@ -125,6 +146,7 @@ export function useHackathons() {
         isLoading,
         hasMore,
         loadMore,
+        lastCardRef, // For infinite scroll
         // Filters
         currentFilter,
         setCurrentFilter,

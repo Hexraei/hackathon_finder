@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 const SORT_OPTIONS = [
     { id: 'relevance', label: 'Relevance' },
@@ -8,51 +14,29 @@ const SORT_OPTIONS = [
 ];
 
 export default function SortDropdown({ currentSort, onSortChange }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
-
-    // Close on outside click
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
-
     const currentLabel = SORT_OPTIONS.find(o => o.id === currentSort)?.label || 'Relevance';
 
-    const handleSelect = (sortId) => {
-        onSortChange(sortId);
-        setIsOpen(false);
-    };
-
     return (
-        <div className={`sort-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-            <button
-                className="sort-btn"
-                id="sortBtn"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <span>Sort: {currentLabel}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                    <path d="m6 9 6 6 6-6" />
-                </svg>
-            </button>
-            <div className="sort-menu" id="sortMenu">
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                    <span>Sort: {currentLabel}</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
                 {SORT_OPTIONS.map(option => (
-                    <button
+                    <DropdownMenuItem
                         key={option.id}
-                        className={`sort-option ${currentSort === option.id ? 'active' : ''}`}
-                        data-sort={option.id}
-                        onClick={() => handleSelect(option.id)}
+                        className={currentSort === option.id ? 'bg-accent' : ''}
+                        onClick={() => onSortChange(option.id)}
                     >
                         {option.label}
-                    </button>
+                    </DropdownMenuItem>
                 ))}
-            </div>
-        </div>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

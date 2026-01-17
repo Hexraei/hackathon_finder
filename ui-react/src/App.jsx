@@ -17,6 +17,7 @@ export default function App() {
     isLoading,
     hasMore,
     loadMore,
+    lastCardRef,
     currentFilter,
     setCurrentFilter,
     currentSort,
@@ -80,6 +81,7 @@ export default function App() {
         onLoadMore={loadMore}
         isBookmarked={isBookmarked}
         onBookmark={toggleBookmark}
+        lastCardRef={lastCardRef}
       />
 
       <ScrollToTop

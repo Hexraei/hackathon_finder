@@ -25,7 +25,8 @@ export function useAISearch() {
 
         try {
             const data = await aiSearch(searchQuery);
-            setResults(data.results || []);
+            // Server returns array directly, not {results: [...]}
+            setResults(Array.isArray(data) ? data : (data.results || []));
         } catch (err) {
             setError(err.message);
             console.error('AI search failed:', err);

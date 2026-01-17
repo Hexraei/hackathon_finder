@@ -1,3 +1,6 @@
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { formatPrize, getLocation, calculateStatus } from '../utils/formatters';
 
 // Source logo URLs
@@ -29,11 +32,12 @@ function renderSourceIcon(source) {
             <img
                 src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
                 alt={source}
+                className="w-8 h-8 rounded"
                 onError={(e) => { e.target.outerHTML = source.charAt(0); }}
             />
         );
     }
-    return source.charAt(0).toUpperCase();
+    return <span className="text-lg font-bold text-gray-600">{source.charAt(0).toUpperCase()}</span>;
 }
 
 function formatMode(mode) {
@@ -42,49 +46,51 @@ function formatMode(mode) {
     return mode.charAt(0).toUpperCase() + mode.slice(1);
 }
 
+function getModeColor(mode) {
+    switch (mode?.toLowerCase()) {
+        case 'online': return 'bg-green-100 text-green-700 border-green-200';
+        case 'in-person':
+        case 'offline': return 'bg-purple-100 text-purple-700 border-purple-200';
+        case 'hybrid': return 'bg-blue-100 text-blue-700 border-blue-200';
+        default: return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+}
+
 export default function HackathonCard({ hackathon, isBookmarked, onBookmark }) {
     const h = hackathon;
     const location = getLocation(h.location);
     const status = calculateStatus(h);
 
-    // Determine mode
     let mode = h.mode || 'unknown';
     const locLower = (location || '').toLowerCase();
     if (locLower === 'online' || locLower === 'virtual' || locLower === 'remote' || locLower.includes('online')) {
         mode = 'online';
     }
 
-    // Hide location if redundant
     const isLocationRedundant = mode === 'online' && ['online', 'virtual', 'remote'].includes(locLower);
 
-    // Parse date for calendar badge
     const dateObj = h.end_date ? new Date(h.end_date) : null;
     const month = dateObj ? dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : 'TBA';
     const day = dateObj ? dateObj.getDate() : '--';
 
-    // Prize display logic
     const prize = h.prize_pool;
     let prizeText = 'Prize TBD';
-    let prizeClass = 'tbd';
+    let prizeStyle = 'text-gray-400 italic';
 
     if (prize) {
         const isMonetary = /^[\$€£¥₹][\d,]+/.test(prize);
         if (isMonetary) {
             prizeText = prize;
-            prizeClass = '';
+            prizeStyle = 'text-gray-800 font-bold';
         } else {
             const isZeroValue = prize.match(/^[\$€£¥₹]?0(\.0+)?$/);
-            if (isZeroValue) {
-                prizeText = 'Prize TBD';
-                prizeClass = 'tbd';
-            } else {
+            if (!isZeroValue) {
                 prizeText = 'Non-Cash Prize';
-                prizeClass = 'non-cash';
+                prizeStyle = 'text-gray-500';
             }
         }
     }
 
-    // Stats
     const count = parseInt(h.participants_count || 0);
     const stats = [];
 
@@ -120,74 +126,103 @@ export default function HackathonCard({ hackathon, isBookmarked, onBookmark }) {
     };
 
     return (
-        <article className="bento-card" data-url={h.url || '#'} onClick={handleCardClick}>
-            {/* Calendar Badge */}
-            <div className="bento-calendar">
-                <div className="calendar-month">{month}</div>
-                <div className="calendar-day">{day}</div>
-            </div>
-
-            {/* Source Icon */}
-            <div className="bento-source-icon" title={h.source || 'Unknown'}>
-                {renderSourceIcon(h.source)}
-            </div>
-
-            {/* Content */}
-            <div className="bento-content">
-                <h3 className="bento-title">{h.title || 'Untitled'}</h3>
-                {h.ai_reason && <div className="ai-reason">{h.ai_reason}</div>}
-
-                <div className="bento-mode-row">
-                    <span className={`bento-mode ${mode}`}>{formatMode(mode)}</span>
-                    {!isLocationRedundant && location && (
-                        <span className="bento-location">{location}</span>
-                    )}
+        <Card
+            className="p-4 gap-2 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col"
+            onClick={handleCardClick}
+        >
+            {/* Top Row: Source Icon + Date Badge */}
+            <div className="flex items-start justify-between mb-3">
+                <div className="w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center bg-white shadow-sm">
+                    {renderSourceIcon(h.source)}
                 </div>
-
-                <div className={`bento-prize ${prizeClass}`}>{prizeText}</div>
-
-                {stats.length > 0 && (
-                    <div className="bento-stats-row">
-                        {stats.map((stat, i) => (
-                            <span key={i} className="bento-stat">
-                                <span className="stat-icon">{stat.icon}</span>
-                                {stat.text}
-                            </span>
-                        ))}
+                <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-gray-200 flex flex-col">
+                    <div className="bg-gray-900 text-white text-[8px] font-semibold text-center py-1">
+                        {month}
                     </div>
-                )}
-
-                {h.tags && h.tags.length > 0 && (
-                    <div className="bento-tags">
-                        {h.tags.slice(0, 3).map((tag, i) => (
-                            <span key={i} className="bento-tag">{tag}</span>
-                        ))}
+                    <div className="bg-white text-gray-900 text-base font-bold flex-1 flex items-center justify-center">
+                        {day}
                     </div>
+                </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-1">
+                {h.title || 'Untitled'}
+            </h3>
+
+            {/* AI Reason */}
+            {h.ai_reason && (
+                <p className="text-sm text-purple-600 bg-purple-50 p-2 rounded-lg mb-1">
+                    ✨ {h.ai_reason}
+                </p>
+            )}
+
+            {/* Mode Row */}
+            <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline" className={`rounded-lg text-xs ${getModeColor(mode)}`}>
+                    {formatMode(mode)}
+                </Badge>
+                {!isLocationRedundant && location && (
+                    <span className="text-sm text-gray-500 truncate">{location}</span>
                 )}
             </div>
+
+            {/* Prize */}
+            <div className={`text-2xl mb-1 ${prizeStyle}`}>
+                {prizeText}
+            </div>
+
+            {/* Stats */}
+            {stats.length > 0 && (
+                <div className="flex items-center gap-4 mb-1 text-sm text-gray-600">
+                    {stats.map((stat, i) => (
+                        <span key={i} className="flex items-center gap-1">
+                            <span>{stat.icon}</span>
+                            {stat.text}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {/* Tags */}
+            {h.tags && h.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-1">
+                    {h.tags.slice(0, 3).map((tag, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs font-normal">
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
 
             {/* Divider */}
-            <div className="bento-divider"></div>
+            <div className="h-px bg-gray-200 mt-2 mb-3" />
 
-            {/* Footer with View Details and Bookmark */}
-            <div className="bento-footer">
-                <button
-                    className="bento-cta"
+            {/* Footer */}
+            <div className="flex items-center gap-[5%]">
+                <Button
+                    variant="default"
+                    size="sm"
+                    className="w-[75%]"
                     onClick={(e) => {
                         e.stopPropagation();
                         if (h.url) window.open(h.url, '_blank');
                     }}
                 >
                     View Details
-                </button>
-                <button
-                    className={`bento-bookmark ${isBookmarked ? 'active' : ''}`}
-                    data-id={h.id}
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`w-[20%] text-xl ${isBookmarked ? 'text-amber-500' : 'text-gray-400'} hover:text-amber-500`}
                     onClick={handleBookmarkClick}
                 >
                     {isBookmarked ? '★' : '☆'}
-                </button>
+                </Button>
             </div>
-        </article>
+        </Card>
     );
 }

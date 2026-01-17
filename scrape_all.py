@@ -393,7 +393,7 @@ def scrape_devpost():
     # 1. Collect all events first
     total_hackathons = []
     
-    for page in range(1, 6):
+    for page in range(1, 30):  # Increased limit to ~1500 events
         try:
             r = safe_get(f'https://devpost.com/api/hackathons?page={page}&per_page=50')
             if not r: break
@@ -417,8 +417,14 @@ def scrape_devpost():
     
     # Save events with details
     saved = 0
+    skipped_invite = 0
     for h in total_hackathons:
         try:
+            # Skip invite-only hackathons
+            if h.get('invite_only'):
+                skipped_invite += 1
+                continue
+                
             # Dates logic (kept from original)
             dates = h.get('submission_period_dates', {})
             start_date = None
@@ -458,9 +464,6 @@ def scrape_devpost():
                 description = details.get('description', '')
                 tags = details.get('tags', [])
                 themes = details.get('themes', [])
-                # Prefer detail team size if found
-                if details.get('team_size'):
-                    h['team_size'] = details.get('team_size')
             else:
                 # Fallback to tagline
                 description = h.get('tagline', '')
@@ -476,13 +479,15 @@ def scrape_devpost():
                 'prize': h.get('prize_amount'),
                 'mode': 'online' if h.get('online_only') else 'in-person',
                 'participants_count': h.get('registrations_count'),
-                'team_size_max': h.get('team_size'),
                 'description': description,
                 'tags': tags,
                 'themes': themes
             }
             if raw['title']: db.save_event(normalizer.normalize(raw, 'Devpost')); saved += 1
         except: pass
+    
+    if skipped_invite > 0:
+        print(f'  (Skipped {skipped_invite} invite-only)')
         
     print(f'  ✓ {saved}')
     return saved
@@ -493,13 +498,19 @@ def scrape_devfolio():
     try:
         # 1. Collect all events first via search API
         all_events = []
+        all_events = []
         for list_type in ['application_open', 'all']:
-            try:
-                r = requests.post('https://api.devfolio.co/api/search/hackathons', 
-                                 json={"type": list_type, "from": 0, "size": 100}, 
-                                 headers=headers, timeout=30)
-                all_events.extend(r.json().get('hits', {}).get('hits', []))
-            except: pass
+            # Fetch multiple pages
+            for offset in range(0, 1000, 50): # Up to 1000 events per type
+                try:
+                    r = requests.post('https://api.devfolio.co/api/search/hackathons', 
+                                     json={"type": list_type, "from": offset, "size": 50}, 
+                                     headers=headers, timeout=30)
+                    hits = r.json().get('hits', {}).get('hits', [])
+                    if not hits: break
+                    all_events.extend(hits)
+                    if len(hits) < 50: break # End of results
+                except: break
         
         # Deduplicate by slug
         unique_events = {}
@@ -670,7 +681,7 @@ def scrape_unstop():
     try:
         # 1. Collect all events first
         all_events = []
-        for page in range(1, 4):  # Limit pages for speed if needed, or keep original range
+        for page in range(1, 30):  # Increased limit to ~3000 events
             try:
                 r = requests.get(f'https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons&per_page=100&page={page}',
                                 headers=headers, timeout=30)
@@ -1477,6 +1488,12 @@ def scrape_devdisplay():
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             page.goto('https://www.devdisplay.org/hackathons', wait_until='networkidle', timeout=60000)
+            
+            # Scroll to trigger any lazy loading
+            for _ in range(5):
+                page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+                page.wait_for_timeout(1000)
+                
             page.wait_for_timeout(2000)
             html = page.content()
             browser.close()
@@ -1696,100 +1713,174 @@ def scrape_kaggle():
                 page.wait_for_timeout(1000)
                 
             html = page.content()
-            browser.close()
             
-
-        soup = BeautifulSoup(html, 'html.parser')
-        seen = set()
-        print(f"  Debug: Soup has {len(soup.find_all('a'))} links")
-        
-        # Select competition links
-        for link in soup.find_all('a', href=True):
-            href = link['href']
+            # Parse listing page
+            soup = BeautifulSoup(html, 'html.parser')
+            seen = set()
+            competitions = []
             
-
-            # Filter
-            if '/competitions/' not in href and '/c/' not in href: 
-                # print(f"  Skipped (pattern): {href}")
-                continue
-            # if href.count('/') < 2: continue # e.g. /competitions
-            if 'about' in href or 'documentation' in href: continue
-            
-            # Debug match
-            print(f"  Checking {href}")
-             
-            # Clean href
-            if not href.startswith('http'): href = 'https://www.kaggle.com' + href
-            
-            if href in seen: continue
-            seen.add(href)
-            
-
-            # Extract info from parent container
-            # Traverse parents to find a substantial container (div/li)
-            container = link.parent
-            found = False
-            for _ in range(3): # Go up 3 levels max
-                if not container: break
-                if container.name in ['div', 'li'] and len(container.get_text(strip=True)) > 50:
-                    found = True
-                    break
-                container = container.parent
-            
-            if not found or not container:
-                # print(f"  Debug: Link match {href} but no valid container found")
-                continue
-            
-            # Start parsing text
-            text = container.get_text(separator=' ', strip=True)
-            
-            # Extract Title (Clean split to avoid concatenation like "TitlePrize")
-            full_text = link.get_text(separator='|', strip=True)
-            parts = [p.strip() for p in full_text.split('|') if p.strip()]
-            title = parts[0] if parts else "Unknown Kaggle Event"
-            
-            # Remove "Featured" if it appears
-            if title.lower() == 'featured' and len(parts) > 1:
-                title = parts[1]
-                # If still no title, try container header
-                if not title:
-                     h = container.find(['h2', 'h3'], class_=not None) # simple check
-                     if h: title = h.get_text(strip=True)
-            
-            if not title: 
-                # print(f"  Debug: No title for {href}")
-                continue
-            
-            # Debug successful match
-            # print(f"  Debug Matches: {title[:20]}...")
-            
-            # Prize
-            prize = "Prize TBD"
-            prize_match = re.search(r'\$[\d,]+', text)
-            if prize_match:
-                prize = prize_match.group(0)
-            
-            # Teams
-            participants = None
-            tm_match = re.search(r'([\d,]+)\s+Teams?', text, re.IGNORECASE)
-            if tm_match:
-                p_str = tm_match.group(1).replace(',', '')
-                participants = int(p_str)
-
-            if len(title) > 3:
-
-
-                raw = {
-                    'title': title, 
-                    'url': href, 
-                    'mode': 'online',
-                    'prize': prize,
-                    'participants_count': participants,
-                    'team_size_max': 5
-                }
-                db.save_event(normalizer.normalize(raw, 'Kaggle')); saved += 1
+            # Collect competition URLs and basic info
+            for link in soup.find_all('a', href=True):
+                href = link['href']
                 
-    except Exception as e: print(f'  Error: {e}')
+                # Filter for competition links
+                if '/competitions/' not in href and '/c/' not in href: 
+                    continue
+                if 'about' in href or 'documentation' in href: 
+                    continue
+                    
+                # Clean href
+                if not href.startswith('http'): 
+                    href = 'https://www.kaggle.com' + href
+                
+                if href in seen: 
+                    continue
+                seen.add(href)
+                
+                # Extract basic info from listing
+                container = link.parent
+                for _ in range(3):
+                    if not container: break
+                    if container.name in ['div', 'li'] and len(container.get_text(strip=True)) > 50:
+                        break
+                    container = container.parent
+                
+                if not container:
+                    continue
+                    
+                text = container.get_text(separator=' ', strip=True)
+                
+                # Extract Title
+                full_text = link.get_text(separator='|', strip=True)
+                parts = [pt.strip() for pt in full_text.split('|') if pt.strip()]
+                title = parts[0] if parts else "Unknown"
+                
+                if title.lower() == 'featured' and len(parts) > 1:
+                    title = parts[1]
+                
+                if not title or len(title) < 3:
+                    continue
+                    
+                # Prize from listing
+                prize = "Prize TBD"
+                prize_match = re.search(r'\$[\d,]+', text)
+                if prize_match:
+                    prize = prize_match.group(0)
+                
+                # Teams from listing
+                participants = None
+                tm_match = re.search(r'([\d,]+)\s+Teams?', text, re.IGNORECASE)
+                if tm_match:
+                    participants = int(tm_match.group(1).replace(',', ''))
+                
+                # Days left (for sorting/priority)
+                days_left = None
+                days_match = re.search(r'(\d+)\s+days?\s+to\s+go', text, re.IGNORECASE)
+                if days_match:
+                    days_left = int(days_match.group(1))
+                
+                competitions.append({
+                    'title': title,
+                    'url': href,
+                    'prize': prize,
+                    'participants': participants,
+                    'days_left': days_left
+                })
+            
+            print(f'  Found {len(competitions)} competitions. Fetching details...')
+            
+            # Fetch detail pages for dates, description, team size
+            for i, comp in enumerate(competitions[:50]):  # Limit to 50 for speed
+                try:
+                    page.goto(comp['url'], wait_until='domcontentloaded', timeout=30000)
+                    page.wait_for_timeout(2000)  # Wait for JS to render
+                    
+                    detail_html = page.content()
+                    detail_soup = BeautifulSoup(detail_html, 'html.parser')
+                    detail_text = detail_soup.get_text(separator=' ', strip=True)
+                    
+                    # Extract deadline/end date
+                    # Look for patterns like "Deadline: February 10, 2025" or "Feb 10, 2025"
+                    end_date = None
+                    date_patterns = [
+                        r'Deadline[:\s]+([A-Za-z]+\s+\d{1,2},?\s+\d{4})',
+                        r'Ends?\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})',
+                        r'([A-Za-z]+\s+\d{1,2},?\s+\d{4})\s+(?:deadline|ends?)',
+                    ]
+                    for pattern in date_patterns:
+                        date_match = re.search(pattern, detail_text, re.IGNORECASE)
+                        if date_match:
+                            try:
+                                from datetime import datetime
+                                date_str = date_match.group(1).replace(',', '')
+                                # Try parsing
+                                for fmt in ['%B %d %Y', '%b %d %Y']:
+                                    try:
+                                        dt = datetime.strptime(date_str, fmt)
+                                        end_date = dt.strftime('%Y-%m-%d')
+                                        break
+                                    except: pass
+                                if end_date:
+                                    break
+                            except: pass
+                    
+                    # Extract team size
+                    team_size_max = None
+                    team_match = re.search(r'(?:team\s+size|members?)[:\s]+(?:up\s+to\s+)?(\d+)', detail_text, re.IGNORECASE)
+                    if team_match:
+                        team_size_max = int(team_match.group(1))
+                    else:
+                        # Try "1-5 members" pattern
+                        team_match2 = re.search(r'(\d+)\s*[-–]\s*(\d+)\s+(?:team\s+)?members?', detail_text, re.IGNORECASE)
+                        if team_match2:
+                            team_size_max = int(team_match2.group(2))
+                    
+                    # Extract description (first meaningful paragraph)
+                    description = ""
+                    paragraphs = detail_soup.find_all('p')
+                    for para in paragraphs:
+                        text = para.get_text(strip=True)
+                        if len(text) > 100 and 'cookie' not in text.lower() and 'privacy' not in text.lower():
+                            description = text[:500]
+                            break
+                    
+                    # Build final record
+                    raw = {
+                        'title': comp['title'], 
+                        'url': comp['url'], 
+                        'mode': 'online',
+                        'location': 'Online',
+                        'prize': comp['prize'],
+                        'participants_count': comp['participants'],
+                        'end_date': end_date,
+                        'team_size_max': team_size_max,
+                        'description': description,
+                        'tags': extract_tags_from_text(description)
+                    }
+                    db.save_event(normalizer.normalize(raw, 'Kaggle'))
+                    saved += 1
+                    
+                    if (i + 1) % 10 == 0:
+                        print(f'    Processed {i + 1}/{min(len(competitions), 50)}...')
+                        
+                except Exception as e:
+                    # Fallback: save without details
+                    raw = {
+                        'title': comp['title'], 
+                        'url': comp['url'], 
+                        'mode': 'online',
+                        'prize': comp['prize'],
+                        'participants_count': comp['participants']
+                    }
+                    db.save_event(normalizer.normalize(raw, 'Kaggle'))
+                    saved += 1
+            
+            browser.close()
+                
+    except Exception as e: 
+        print(f'  Error: {e}')
+        import traceback
+        traceback.print_exc()
     print(f'  ✓ {saved}')
     return saved
 

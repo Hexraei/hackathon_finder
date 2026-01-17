@@ -4,6 +4,9 @@ HackFind Server (FastAPI)
 FastAPI server with API for hackathon data.
 Auto-generated Swagger docs at /docs
 """
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file
+
 import os
 import sys
 from datetime import datetime

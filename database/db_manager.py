@@ -183,8 +183,21 @@ class DatabaseManager:
             event: HackathonEvent object to save
             
         Returns:
-            True if successful
+            True if successful, False if skipped (ended/past deadline)
         """
+        # Filter out past events
+        if event.status == 'ended':
+            return False
+            
+        # Filter out events with past registration deadline
+        if event.registration_deadline:
+            try:
+                reg_deadline = datetime.strptime(event.registration_deadline, "%Y-%m-%d").date()
+                if reg_deadline < datetime.now().date():
+                    return False
+            except ValueError:
+                pass
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
             

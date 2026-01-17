@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import FilterPills from './FilterPills';
 import SourcesDropdown from './SourcesDropdown';
 import SortDropdown from './SortDropdown';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { debounce } from '../utils/formatters';
 
 export default function FilterBar({
@@ -36,7 +38,6 @@ export default function FilterBar({
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    // For now, just set a placeholder - could integrate with geocoding API
                     setLocalLocation('Near me');
                     onLocationChange('Near me');
                 },
@@ -51,19 +52,16 @@ export default function FilterBar({
     };
 
     return (
-        <section className="filters" id="filtersSection">
-            <h2 className="explore-heading" id="exploreHeading">Explore</h2>
-            <div className={`filters-content ${showStickyHeader ? 'sticky-active' : ''}`} id="filtersContent">
-                <div className="filters-layout-split">
+        <section className="py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Explore</h2>
+            <div className={`max-w-7xl mx-auto px-6 ${showStickyHeader ? 'bg-white/90 backdrop-blur-md shadow-lg fixed top-16 left-0 right-0 z-40 py-4' : ''}`}>
+                <div className="flex flex-col lg:flex-row gap-6">
                     {/* Left Column: Pills + Sources */}
-                    <div className="filters-left-col">
-                        {/* Row 1: Filter Pills */}
+                    <div className="flex flex-col gap-3 flex-shrink-0">
                         <FilterPills
                             currentFilter={currentFilter}
                             onFilterChange={onFilterChange}
                         />
-
-                        {/* Row 2: Sources Filter */}
                         <SourcesDropdown
                             allSources={allSources}
                             selectedSources={selectedSources}
@@ -72,52 +70,51 @@ export default function FilterBar({
                     </div>
 
                     {/* Right Column: Search + Loc/Sort/Count */}
-                    <div className="filters-right-col">
+                    <div className="flex flex-col gap-3 flex-1">
                         {/* Row 1: Keyword Search */}
-                        <div className="filters-right-row-top">
-                            <div className="keyword-search-container full-width">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                                    <circle cx="11" cy="11" r="8" />
-                                    <path d="m21 21-4.35-4.35" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    className="keyword-search-input"
-                                    id="searchInput"
-                                    placeholder="Search keywords..."
-                                    value={localSearch}
-                                    onChange={(e) => setLocalSearch(e.target.value)}
-                                />
-                            </div>
+                        <div className="relative">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            <Input
+                                type="text"
+                                placeholder="Search keywords..."
+                                value={localSearch}
+                                onChange={(e) => setLocalSearch(e.target.value)}
+                                className="pl-10"
+                            />
                         </div>
 
                         {/* Row 2: Location + Sort + Count */}
-                        <div className="filters-right-row-bottom">
-                            {/* Location Input */}
-                            <div className="location-filter-group">
-                                <input
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-2">
+                                <Input
                                     type="text"
-                                    className="location-input"
-                                    id="locationInput"
                                     placeholder="Location..."
                                     value={localLocation}
                                     onChange={(e) => setLocalLocation(e.target.value)}
+                                    className="w-40"
                                 />
-                                <button className="nearby-btn" id="nearbyBtn" onClick={handleNearby} title="Use my location">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                                    onClick={handleNearby}
+                                    title="Use my location"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                                         <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
                                     </svg>
-                                </button>
+                                </Button>
                             </div>
 
-                            {/* Sort Dropdown */}
                             <SortDropdown
                                 currentSort={currentSort}
                                 onSortChange={onSortChange}
                             />
 
-                            {/* Results Count */}
-                            <span className="results-count" id="resultsCount">
+                            <span className="text-sm text-gray-500">
                                 {totalCount} hackathons
                             </span>
                         </div>
