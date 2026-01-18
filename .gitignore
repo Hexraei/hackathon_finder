@@ -1,0 +1,42 @@
+# Database
+*.db
+hackathons.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Extensions
+extensions/
+
+# Vector DB (local only, will be regenerated)
+chroma_db/
+
+# Model cache (auto-downloaded)
+.cache/
+
+# Database
+hackathons.db
+
+# Python
+__pycache__/
+*.pyc
