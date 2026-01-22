@@ -8,16 +8,33 @@ import sys
 import re
 import json
 import time
+import os
 import requests
 from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Add local path
 sys.path.insert(0, '.')
 
-from database.db_manager import DatabaseManager
+# Conditional database selection
+if os.getenv('USE_TIDB', 'false').lower() == 'true':
+    from database.tidb_manager import TiDBManager
+    db = TiDBManager()
+    print("📦 Using TiDB Cloud database")
+else:
+    from database.db_manager import DatabaseManager
+    db = DatabaseManager('hackathons.db')
+    print("📦 Using local SQLite database")
+
 from utils.data_normalizer import DataNormalizer
 
 # Initialize global objects
@@ -25,7 +42,6 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0', 
     'Accept': 'application/json, text/html, */*'
 }
-db = DatabaseManager('hackathons.db')
 normalizer = DataNormalizer()
 
 # ==========================================

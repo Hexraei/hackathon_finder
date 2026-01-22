@@ -33,8 +33,14 @@ db = None
 def get_db():
     global db
     if db is None:
-        from database.db_manager import DatabaseManager
-        db = DatabaseManager(str(BASE_DIR / "hackathons.db"))
+        if os.getenv('USE_TIDB', 'false').lower() == 'true':
+            from database.tidb_manager import TiDBManager
+            db = TiDBManager()
+            print("📦 Server using TiDB Cloud database")
+        else:
+            from database.db_manager import DatabaseManager
+            db = DatabaseManager(str(BASE_DIR / "hackathons.db"))
+            print("📦 Server using local SQLite database")
     return db
 
 
