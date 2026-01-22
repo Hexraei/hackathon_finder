@@ -172,9 +172,8 @@ input {
     font-size: var(--font-size-3xl);
     font-weight: 700;
     text-align: center;
-    margin-top: 96px;
-    /* Increased margin as requested */
-    margin-bottom: var(--space-6);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-4);
     color: var(--color-gray-900);
 }
 
@@ -214,50 +213,29 @@ input {
     margin-right: auto;
 }
 
-/* === AI Search Box with Purple Gradient Animation === */
+/* === AI Search Box === */
 .ai-search-container {
     max-width: 700px;
     margin: 0 auto;
     position: relative;
-    padding: 3px;
-    border-radius: var(--radius-2xl);
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #8b5cf6, #6366f1);
-    background-size: 300% 100%;
-    animation: purple-flow 6s linear infinite;
-}
-
-@keyframes purple-flow {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
 }
 
 .ai-search-glow {
-    position: absolute;
-    inset: -3px;
-    border-radius: var(--radius-2xl);
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #8b5cf6, #6366f1);
-    background-size: 300% 100%;
-    animation: purple-flow 6s linear infinite;
-    filter: blur(12px);
-    opacity: 0.6;
-    z-index: -1;
+    display: none;
 }
 
 .ai-search-box {
     display: flex;
     align-items: center;
     background: var(--color-white);
-    border-radius: calc(var(--radius-2xl) - 2px);
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-2xl);
     padding: var(--space-3) var(--space-4);
+    transition: border-color 0.2s ease;
+}
+
+.ai-search-box:focus-within {
+    border-color: var(--color-gray-400);
 }
 
 .ai-search-input {
@@ -275,29 +253,121 @@ input {
 .ai-search-btn {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-5);
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: var(--color-white);
-    border-radius: var(--radius-xl);
-    font-weight: 600;
-    font-size: var(--font-size-sm);
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: none;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .ai-search-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
 .ai-search-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 48px;
+    height: 48px;
+    display: block;
 }
 
 .ai-search-btn.loading {
     opacity: 0.7;
     cursor: wait;
+}
+
+/* AI Search Clear Button */
+.ai-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--color-gray-100);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-right: var(--space-2);
+}
+
+.ai-search-clear:hover {
+    background: var(--color-gray-200);
+    transform: scale(1.1);
+}
+
+.ai-search-clear svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-gray-500);
+}
+
+/* AI Search Suggestions */
+.ai-search-suggestions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.suggestion-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-500);
+    font-weight: 500;
+}
+
+.suggestion-chip {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.suggestion-chip:hover {
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    border-color: var(--color-gray-900);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Fade-in Animation for Infinite Scroll */
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bento-card {
+    animation: cardFadeIn 0.4s ease forwards;
+}
+
+.bento-card:nth-child(3n+1) {
+    animation-delay: 0s;
+}
+
+.bento-card:nth-child(3n+2) {
+    animation-delay: 0.1s;
+}
+
+.bento-card:nth-child(3n) {
+    animation-delay: 0.2s;
 }
 
 /* AI Thinking Process */
@@ -626,7 +696,7 @@ input {
 
 /* Nearby Button */
 .nearby-btn {
-    background: #10b981;
+    background: var(--color-black);
     border: none;
     width: 36px;
     height: 36px;
@@ -640,7 +710,7 @@ input {
 }
 
 .nearby-btn:hover {
-    background: #059669;
+    background: var(--color-gray-800);
 }
 
 .nearby-btn svg {
@@ -649,22 +719,11 @@ input {
     color: white;
 }
 
-/* Sticky Filters (Floating Island Style) */
+/* Sticky Filters - DISABLED to prevent card overlap */
 .filters-content.sticky-active {
-    position: fixed;
-    top: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 1400px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
-    z-index: 500;
-    padding: 16px 24px;
-    animation: fadeIn 0.3s ease;
+    /* Disabled - no longer uses fixed positioning */
+    position: relative;
+    background: var(--color-white);
 }
 
 @keyframes fadeIn {
@@ -794,10 +853,9 @@ input {
 .filters {
     padding: var(--space-4) var(--space-6);
     border-bottom: 1px solid var(--color-gray-100);
-    position: sticky;
-    top: 65px;
     background: var(--color-white);
-    z-index: 50;
+    position: relative;
+    z-index: 20;
 }
 
 .filters-content {
@@ -932,6 +990,8 @@ input {
     max-width: 1400px;
     margin: 0 auto;
     padding: var(--space-6);
+    position: relative;
+    z-index: 10;
 }
 
 .bento-grid {
@@ -2290,7 +2350,7 @@ input {
 }
 
 .nearby-btn {
-    background: #10b981;
+    background: var(--color-black);
     border: none;
     width: 36px;
     height: 36px;
@@ -2305,7 +2365,7 @@ input {
 }
 
 .nearby-btn:hover {
-    background: #059669;
+    background: var(--color-gray-800);
     transform: scale(1.08);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
@@ -2359,4 +2419,123 @@ input {
 .filters-layout-split,
 .filters-left-col {
     overflow: visible !important;
+}
+
+/* === Bento Card Actions (Share + Bookmark) === */
+.bento-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.bento-share {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bento-share:hover {
+    background: var(--color-gray-900);
+    border-color: var(--color-gray-900);
+    transform: scale(1.1);
+}
+
+.bento-share svg {
+    width: 18px;
+    height: 18px;
+    color: var(--color-gray-600);
+    transition: color 0.2s ease;
+}
+
+.bento-share:hover svg {
+    color: var(--color-white);
+}
+
+/* === Toast Notification === */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    padding: 12px 24px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* === Visited Card State (Google-style purple) === */
+.bento-card.visited {
+    opacity: 0.85;
+}
+
+.bento-card.visited .bento-title {
+    color: #681da8;
+    /* Google's visited link purple */
+}
+
+/* === Keyboard Shortcut Badge === */
+.shortcut-badge {
+    position: absolute;
+    right: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--color-gray-400);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    pointer-events: none;
+    font-family: monospace;
+    transition: opacity 0.2s;
+}
+
+.ai-search-input:focus~.shortcut-badge {
+    opacity: 0;
+}
+
+@media (max-width: 768px) {
+    .shortcut-badge {
+        display: none;
+    }
+}
+
+/* === Team/Solo Filter Styles === */
+.filter-chip[data-filter="solo"]::before,
+.filter-chip[data-filter="team"]::before {
+    margin-right: 4px;
+}
+
+/* === New Filter Pills === */
+.filter-section {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-gray-300);
+    margin: 0 var(--space-2);
 }

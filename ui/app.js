@@ -21,8 +21,29 @@ let state = {
     isLoading: true,
     bookmarks: new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')),
     selectedSources: new Set(), // Will be filled in init
-    allSources: []
+    allSources: [],
+    // New filters
+    teamFilter: 'all', // 'all', 'solo', 'team'
+    dayFilter: 'all', // 'all', 'weekend', 'weekday'
+    visitedCards: new Set(JSON.parse(localStorage.getItem('visitedCards') || '[]'))
 };
+
+// === Toast Notification Helper ===
+function showToast(message, duration = 2000) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, duration);
+}
+
+// === Visited Card Tracking ===
+function markCardAsVisited(cardId) {
+    state.visitedCards.add(cardId);
+    localStorage.setItem('visitedCards', JSON.stringify([...state.visitedCards]));
+}
 
 // === Relevance Score Calculation (Internal) ===
 function calculateRelevanceScore(event) {
@@ -53,13 +74,6 @@ let filtersSectionTop = 0;
 
 function initScrollBehavior() {
     const scrollTopBtn = document.getElementById('scrollTopBtn');
-    const filtersSection = document.getElementById('filtersSection');
-    const filtersContent = document.getElementById('filtersContent');
-    const exploreHeading = document.getElementById('exploreHeading');
-
-    if (filtersSection) {
-        filtersSectionTop = filtersSection.offsetTop;
-    }
 
     // Scroll-to-top button
     if (scrollTopBtn) {
@@ -68,7 +82,7 @@ function initScrollBehavior() {
         });
     }
 
-    // Handle scroll events
+    // Handle scroll events - only scroll-to-top button visibility
     window.addEventListener('scroll', () => {
         const currentY = window.scrollY;
 
@@ -80,29 +94,6 @@ function initScrollBehavior() {
                 scrollTopBtn.classList.remove('visible');
             }
         }
-
-        // Sticky filter on scroll-up only
-        if (filtersContent && filtersSection) {
-            const filterBottom = filtersSectionTop + filtersSection.offsetHeight;
-
-            if (currentY > filterBottom) {
-                // Past the filters
-                if (currentY < lastScrollY) {
-                    // Scrolling UP - show sticky filters
-                    filtersContent.classList.add('sticky-active');
-                    if (exploreHeading) exploreHeading.style.visibility = 'hidden';
-                } else {
-                    // Scrolling DOWN - hide sticky filters
-                    filtersContent.classList.remove('sticky-active');
-                }
-            } else {
-                // Within the filters section - normal behavior
-                filtersContent.classList.remove('sticky-active');
-                if (exploreHeading) exploreHeading.style.visibility = 'visible';
-            }
-        }
-
-        lastScrollY = currentY;
     });
 }
 
@@ -241,9 +232,47 @@ function bindEvents() {
     elements.locationInput?.addEventListener('keypress', e => { if (e.key === 'Enter') handleLocationFilter(); });
     elements.nearbyBtn?.addEventListener('click', handleNearbyEvents);
 
+    // Keyboard Shortcuts (Universal)
+    document.addEventListener('keydown', e => {
+        // Ctrl+K or Cmd+K to focus AI Search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const aiSearchInput = document.getElementById('aiSearchInput');
+            aiSearchInput?.focus();
+            showToast('⌨️ AI Search focused');
+        }
+
+        // "/" to focus AI Search (unless typing in input)
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            const aiSearchInput = document.getElementById('aiSearchInput');
+            aiSearchInput?.focus();
+        }
+
+        // Esc to clear search or blur
+        if (e.key === 'Escape') {
+            const aiSearchInput = document.getElementById('aiSearchInput');
+            const aiResults = document.getElementById('aiSearchResults');
+
+            if (document.activeElement === aiSearchInput) {
+                if (aiSearchInput.value) {
+                    aiSearchInput.value = ''; // Clear text
+                    if (aiResults) aiResults.style.display = 'none'; // Hide results
+                    const clearBtn = document.getElementById('aiSearchClear');
+                    if (clearBtn) clearBtn.style.display = 'none';
+                } else {
+                    aiSearchInput.blur(); // Blur if empty
+                }
+            } else if (aiResults && aiResults.style.display !== 'none') {
+                aiResults.style.display = 'none'; // Close results if open
+            }
+        }
+    });
+
     // AI Search events - get elements directly since they may not be in cache
     const aiSearchBtn = document.getElementById('aiSearchBtn');
     const aiSearchInput = document.getElementById('aiSearchInput');
+    const aiSearchClear = document.getElementById('aiSearchClear');
 
     if (aiSearchBtn) {
         aiSearchBtn.addEventListener('click', handleAISearch);
@@ -255,6 +284,55 @@ function bindEvents() {
     if (aiSearchInput) {
         aiSearchInput.addEventListener('keypress', e => {
             if (e.key === 'Enter') handleAISearch();
+        });
+
+        // Show/hide clear button based on input
+        aiSearchInput.addEventListener('input', () => {
+            if (aiSearchClear) {
+                aiSearchClear.style.display = aiSearchInput.value.trim() ? 'flex' : 'none';
+            }
+        });
+    }
+
+    // Clear button handler
+    if (aiSearchClear) {
+        aiSearchClear.addEventListener('click', () => {
+            if (aiSearchInput) {
+                aiSearchInput.value = '';
+                aiSearchInput.focus();
+                aiSearchClear.style.display = 'none';
+            }
+            // Hide AI results if showing
+            const aiResults = document.getElementById('aiResults');
+            if (aiResults) aiResults.style.display = 'none';
+        });
+    }
+
+    // Suggestion chips handler
+    document.querySelectorAll('.suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const query = chip.dataset.query;
+            if (aiSearchInput && query) {
+                aiSearchInput.value = query;
+                if (aiSearchClear) aiSearchClear.style.display = 'flex';
+                handleAISearch();
+            }
+        });
+    });
+
+    // Clear History button handler
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear visited cards
+            state.visitedCards.clear();
+            localStorage.removeItem('visitedCards');
+            // Remove visited class from all cards
+            document.querySelectorAll('.bento-card.visited').forEach(card => {
+                card.classList.remove('visited');
+            });
+            showToast('✓ History cleared!');
         });
     }
 
@@ -379,12 +457,48 @@ async function fetchFilteredEvents() {
 }
 
 function applyFiltersAndSort() {
-    // Client-side only filtering for source (since it's multi-select)
+    // Client-side filtering for source, team, and day filters
     let filtered = [...state.hackathons];
 
     // Apply source filter
     if (state.selectedSources.size > 0 && state.selectedSources.size < state.allSources.length) {
         filtered = filtered.filter(h => state.selectedSources.has(h.source));
+    }
+
+    // Apply team filter (solo/team) - based on team_size or mode keywords
+    if (state.teamFilter === 'solo') {
+        filtered = filtered.filter(h => {
+            // Look for solo indicators: team_size = 1, or "solo" in title/description
+            const teamSize = h.team_size || h.team_size_max || null;
+            const title = (h.title || '').toLowerCase();
+            const desc = (h.description || '').toLowerCase();
+            return teamSize === 1 || teamSize === '1' ||
+                title.includes('solo') || desc.includes('individual') ||
+                title.includes('individual') || !title.includes('team');
+        });
+    } else if (state.teamFilter === 'team') {
+        filtered = filtered.filter(h => {
+            const teamSize = h.team_size || h.team_size_max || null;
+            const title = (h.title || '').toLowerCase();
+            return (teamSize && teamSize > 1) || title.includes('team');
+        });
+    }
+
+    // Apply day filter (weekend/weekday) - based on start_date
+    if (state.dayFilter === 'weekend') {
+        filtered = filtered.filter(h => {
+            if (!h.start_date) return false;
+            const date = new Date(h.start_date);
+            const day = date.getDay();
+            return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+        });
+    } else if (state.dayFilter === 'weekday') {
+        filtered = filtered.filter(h => {
+            if (!h.start_date) return false;
+            const date = new Date(h.start_date);
+            const day = date.getDay();
+            return day >= 1 && day <= 5; // Monday = 1 to Friday = 5
+        });
     }
 
     state.filteredHackathons = filtered;
@@ -398,11 +512,51 @@ function handleSearch() {
 }
 
 function handleFilterChange(pill) {
-    elements.filterPills.forEach(p => p.classList.remove('active'));
-    pill.classList.add('active');
-    state.currentFilter = pill.dataset.filter;
-    console.log(`Filter changed to: ${state.currentFilter}`);
-    fetchFilteredEvents(); // Call API with filter param
+    // Check which type of filter this is
+    const filterType = pill.dataset.filter;
+    const teamType = pill.dataset.team;
+    const dayType = pill.dataset.day;
+
+    if (filterType !== undefined) {
+        // Main filter (All, Upcoming, Live, Online, Offline)
+        elements.filterPills.forEach(p => {
+            if (p.dataset.filter !== undefined) p.classList.remove('active');
+        });
+        pill.classList.add('active');
+        state.currentFilter = filterType;
+        console.log(`Filter changed to: ${state.currentFilter}`);
+        fetchFilteredEvents();
+    } else if (teamType !== undefined) {
+        // Team filter (Solo/Team) - toggle behavior
+        if (pill.classList.contains('active')) {
+            pill.classList.remove('active');
+            state.teamFilter = 'all';
+        } else {
+            elements.filterPills.forEach(p => {
+                if (p.dataset.team !== undefined) p.classList.remove('active');
+            });
+            pill.classList.add('active');
+            state.teamFilter = teamType;
+        }
+        console.log(`Team filter changed to: ${state.teamFilter}`);
+        applyFiltersAndSort();
+        renderHackathons();
+    } else if (dayType !== undefined) {
+        // Day filter (Weekend/Weekday) - toggle behavior
+        if (pill.classList.contains('active')) {
+            pill.classList.remove('active');
+            state.dayFilter = 'all';
+        } else {
+            elements.filterPills.forEach(p => {
+                if (p.dataset.day !== undefined) p.classList.remove('active');
+            });
+            pill.classList.add('active');
+            state.dayFilter = dayType;
+        }
+        console.log(`Day filter changed to: ${state.dayFilter}`);
+        applyFiltersAndSort();
+        renderHackathons();
+    }
 }
 
 // === Location Filter ===
@@ -666,14 +820,45 @@ function renderHackathons(append = false) {
         btn.addEventListener('click', e => toggleBookmark(e, btn.dataset.id));
     });
 
-    // CTA button redirects to hackathon URL
+    // CTA button redirects to hackathon URL and marks as visited
     document.querySelectorAll('.bento-cta:not([data-bound])').forEach(btn => {
         btn.dataset.bound = 'true';
         btn.addEventListener('click', e => {
             e.stopPropagation();
             const card = btn.closest('.bento-card');
             const url = card?.dataset.url;
+            const cardId = card?.dataset.id;
+
+            // Mark as visited
+            if (cardId) {
+                markCardAsVisited(cardId);
+                card.classList.add('visited');
+            }
+
             if (url && url.startsWith('http')) window.open(url, '_blank', 'noopener');
+        });
+    });
+
+    // Share button handler - Always copy to clipboard with toast
+    document.querySelectorAll('.bento-share:not([data-bound])').forEach(btn => {
+        btn.dataset.bound = 'true';
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const url = btn.dataset.url;
+
+            try {
+                await navigator.clipboard.writeText(url);
+                showToast('✓ Link copied to clipboard!');
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('✓ Link copied to clipboard!');
+            }
         });
     });
 
@@ -815,8 +1000,11 @@ function createCard(h) {
         return source.charAt(0).toUpperCase();
     };
 
+    // Check if card was visited before
+    const isVisited = state.visitedCards.has(h.id);
+
     return `
-        <article class="bento-card" data-url="${h.url || '#'}">
+        <article class="bento-card${isVisited ? ' visited' : ''}" data-url="${h.url || '#'}" data-id="${h.id}">
             <!-- Calendar Badge -->
             <div class="bento-calendar">
                 <div class="calendar-month">${month}</div>
@@ -844,7 +1032,7 @@ function createCard(h) {
                     ${getStatsHtml()}
                 </div>
 
-                ${h.tags?.length ? `<div class="bento-tags">${h.tags.slice(0, 3).map(t => `<span class="bento-tag">${t}</span>`).join('')}</div>` : ''}
+                ${h.tags?.length ? `<div class="bento-tags">${h.tags.slice(0, 3).map(t => `<span class="bento-tag" title="${t}">${t}</span>`).join('')}</div>` : ''}
             </div>
 
             <!-- Divider -->
@@ -853,9 +1041,20 @@ function createCard(h) {
             <!-- Footer -->
             <div class="bento-footer">
                 <button class="bento-cta">View Details</button>
-                <button class="bento-bookmark ${isBookmarked ? 'active' : ''}" data-id="${h.id}">
-                    ${isBookmarked ? '★' : '☆'}
-                </button>
+                <div class="bento-actions">
+                    <button class="bento-share" data-url="${h.url || '#'}" data-title="${h.title || 'Hackathon'}" title="Share">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                    </button>
+                    <button class="bento-bookmark ${isBookmarked ? 'active' : ''}" data-id="${h.id}">
+                        ${isBookmarked ? '★' : '☆'}
+                    </button>
+                </div>
             </div>
         </article>
     `;
@@ -1096,4 +1295,71 @@ function initScrollBehavior() {
     scrollTopBtn?.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+}
+
+// === Dynamic Typing Animation for Search Bar ===
+function initTypingAnimation() {
+    const searchInput = document.getElementById('aiSearchInput');
+    if (!searchInput) return;
+
+    const sentences = [
+        "e.g., 'beginner friendly hackathons in India with prizes'",
+        "e.g., 'AI/ML hackathons with high prize pools'",
+        "e.g., 'online hackathons for students this month'",
+        "e.g., 'web development competitions near me'",
+        "e.g., 'blockchain hackathons with mentorship'",
+        "e.g., 'gaming hackathons for beginners'"
+    ];
+
+    let currentSentenceIndex = 0;
+    let currentCharIndex = 0;
+    let isDeleting = false;
+    let isPaused = false;
+
+    function type() {
+        const currentSentence = sentences[currentSentenceIndex];
+
+        if (isPaused) {
+            setTimeout(type, 2000); // Pause for 2 seconds before deleting
+            isPaused = false;
+            return;
+        }
+
+        if (isDeleting) {
+            // Delete characters
+            currentCharIndex--;
+            searchInput.placeholder = currentSentence.substring(0, currentCharIndex);
+
+            if (currentCharIndex === 0) {
+                isDeleting = false;
+                currentSentenceIndex = (currentSentenceIndex + 1) % sentences.length;
+                setTimeout(type, 500); // Pause before typing next sentence
+                return;
+            }
+        } else {
+            // Type characters
+            currentCharIndex++;
+            searchInput.placeholder = currentSentence.substring(0, currentCharIndex);
+
+            if (currentCharIndex === currentSentence.length) {
+                isDeleting = true;
+                isPaused = true;
+                setTimeout(type, 15);
+                return;
+            }
+        }
+
+        // Typing speed: 15ms per character
+        setTimeout(type, isDeleting ? 10 : 15);
+    }
+
+    // Start the animation
+    type();
+}
+
+// Initialize typing animation when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTypingAnimation);
+} else {
+    initTypingAnimation();
 }
