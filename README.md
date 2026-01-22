@@ -1,13 +1,15 @@
 # HackFind
 
-**The Hackathon Discovery Platform**
+**The Hackathon Discovery Platform** 🚀
 
-Aggregating 1300+ hackathons from 15+ sources into one unified experience.
+Aggregating 1000+ hackathons from 15+ sources into one unified experience.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0-blue" alt="Version">
-  <img src="https://img.shields.io/badge/python-3.9+-green" alt="Python">
+  <img src="https://img.shields.io/badge/version-1.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/python-3.11+-green" alt="Python">
   <img src="https://img.shields.io/badge/react-19-61dafb" alt="React">
+  <img src="https://img.shields.io/badge/TiDB-Cloud-4A89DC" alt="TiDB">
+  <img src="https://img.shields.io/badge/status-production-brightgreen" alt="Production">
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
 </p>
 
@@ -20,7 +22,6 @@ Aggregating 1300+ hackathons from 15+ sources into one unified experience.
 - [Changelog](#changelog)
 - [Data Sources](#data-sources)
 - [Architecture](#architecture)
-- [Roadmap](#roadmap)
 - [License](#license)
 
 ---
@@ -30,13 +31,12 @@ Aggregating 1300+ hackathons from 15+ sources into one unified experience.
 | Feature | Description |
 |---------|-------------|
 | **Multi-Source Aggregation** | Devpost, Devfolio, Unstop, MLH, DoraHacks, Kaggle, and 9 more platforms |
-| **AI Semantic Search** | Natural language queries powered by ChromaDB + MiniLM embeddings |
-| **Smart shortcuts** | `Ctrl+K` to search, `/` to focus, auto-fill suggestion chips |
-| **Privacy-First** | No login required. Bookmarks and visited history stored locally. |
-| **Hybrid Search** | Combines vector (semantic) and keyword (lexical) search with rank fusion |
-| **Direct API Integration** | Fast data fetching for Unstop and Devfolio via official APIs |
-| **React Frontend** | Modern component-based UI with Vite dev server |
-| **Normalized Schema** | Consistent data model across all sources |
+| **AI Semantic Search** | Natural language queries powered by Gemini + ChromaDB |
+| **TiDB Cloud** | Scalable MySQL-compatible cloud database for production |
+| **GitHub Actions** | Automated scraping every 8 hours |
+| **Smart Shortcuts** | `Ctrl+K` to search, `/` to focus, auto-fill suggestion chips |
+| **Privacy-First** | No login required. Bookmarks stored locally. |
+| **React Frontend** | Modern UI with Vite, Tailwind CSS v4, shadcn/ui |
 
 ---
 
@@ -49,24 +49,27 @@ cd hackfind
 pip install -r requirements.txt
 playwright install chromium
 
-# Run scraper
+# Run scraper (local SQLite)
 python scrape_all.py
 
-# Start backend (requires Gemini API key for AI search)
-export GEMINI_API_KEY="your-api-key"
+# Run scraper (TiDB Cloud)
+export USE_TIDB=true
+export TIDB_HOST=... TIDB_PORT=4000 TIDB_USER=... TIDB_PASSWORD=... TIDB_DATABASE=...
+python scrape_all.py
+
+# Start backend
 python server.py
 
-# Start React dev server (optional)
+# Start React dev server
 cd ui-react && npm install && npm run dev
 ```
 
 **Tech Stack:**
 - **Frontend:** React 19, Vite, Tailwind CSS v4, shadcn/ui
-- **Backend:** FastAPI, Python 3.9+
-- **Database:** SQLite, ChromeDB (Vector Search)
+- **Backend:** FastAPI, Python 3.11+
+- **Database:** TiDB Cloud (prod) / SQLite (dev)
 
 **Access Points:**
-- Original UI: http://localhost:8000
 - React UI: http://localhost:5173
 - API Docs: http://localhost:8000/docs
 
@@ -74,21 +77,26 @@ cd ui-react && npm install && npm run dev
 
 ## Changelog
 
-### 7.0 "Clean UX" (2026-01-18)
+### 1.0 "Production Ready" (2026-01-23)
 
-**Aggregation & Trust**
-- **Visited State:** Cards track "visited" status in LocalStorage (purple link style).
-- **Share:** Instant clipboard copy with toast notification for all events.
-- **Privacy:** Clear History button to wipe local data.
+**Cloud Infrastructure**
+- **TiDB Cloud:** Migrated from SQLite to MySQL-compatible cloud database
+- **GitHub Actions:** Automated scraper runs every 8 hours
+- **SSL Support:** Secure connections to cloud database
 
-**Speed & Accessibility**
-- **Keyboard Shortcuts:** `Ctrl+K` / `/` to search, `Esc` to clear.
-- **Smart Toggle Filters:** Solo/Team and Weekend/Weekday filters.
-- **AI Suggestions:** One-click chips for common queries.
+**Configuration**
+- Conditional DB selection via `USE_TIDB` environment variable
+- Added `.env.example` with all required configuration
+- Updated `requirements.txt` with PyMySQL, cryptography
 
-**Visual Polish**
-- **Animations:** Smooth card fade-ins and toast popups.
-- **Layout:** Fixed sticky filter overlap issues.
+---
+
+### 0.7 "Clean UX" (2026-01-18)
+
+**UX Improvements**
+- Visited state tracking, share button, keyboard shortcuts
+- Smart toggle filters (Solo/Team, Weekend/Weekday)
+- AI suggestion chips, smooth animations
 
 ---
 
