@@ -1,0 +1,22 @@
+# Ignore heavy directories
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore development files
+.env
+*.db
+hackathons.db
+chroma_db/
+
+# Ignore scraper files (not needed for API)
+ui/
+vectorize_events.py
+
+# Ignore build artifacts
+*.egg-info
+dist/
+build/
