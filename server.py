@@ -215,9 +215,13 @@ async def api_hackathons(
 @app.get("/api/sources", tags=["Metadata"])
 async def api_sources():
     """Get all unique source platforms."""
-    all_events = get_all_events_cached()
-    sources = sorted(set(e.get('source') for e in all_events if e.get('source')))
-    return {"sources": sources}
+    try:
+        database = get_db()
+        sources_data = database.get_all_sources()  # Returns list of (source, count) tuples
+        return {"sources": [s[0] for s in sources_data]}
+    except Exception as e:
+        print(f"Sources API Error: {e}")
+        return {"sources": []}
 
 @app.get("/api/locations", tags=["Metadata"])
 async def api_locations():

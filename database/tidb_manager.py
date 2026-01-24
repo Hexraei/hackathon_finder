@@ -344,8 +344,56 @@ class TiDBManager:
                 LIMIT %s OFFSET %s
             """
             cursor.execute(query, params + [page_size, offset])
+            rows = cursor.fetchall()
             
-            events = [self._row_to_event(row, cursor) for row in cursor.fetchall()]
+            if not rows:
+                return [], total
+            
+            # Batch fetch tags and themes for all events at once (avoid N+1 queries)
+            event_ids = [row['id'] for row in rows]
+            id_placeholders = ",".join(["%s"] * len(event_ids))
+            
+            # Batch get tags
+            cursor.execute(f"SELECT event_id, tag FROM event_tags WHERE event_id IN ({id_placeholders})", event_ids)
+            tags_by_event = {}
+            for r in cursor.fetchall():
+                tags_by_event.setdefault(r['event_id'], []).append(r['tag'])
+            
+            # Batch get themes
+            cursor.execute(f"SELECT event_id, theme FROM event_themes WHERE event_id IN ({id_placeholders})", event_ids)
+            themes_by_event = {}
+            for r in cursor.fetchall():
+                themes_by_event.setdefault(r['event_id'], []).append(r['theme'])
+            
+            # Build events with pre-fetched tags/themes
+            events = []
+            for row in rows:
+                event = HackathonEvent(
+                    id=row['id'],
+                    source=row['source'],
+                    title=row['title'],
+                    url=row['url'],
+                    start_date=row['start_date'],
+                    end_date=row['end_date'],
+                    registration_deadline=row['registration_deadline'],
+                    location=row['location'],
+                    mode=row['mode'],
+                    description=row['description'],
+                    prize_pool=row['prize_pool'],
+                    prize_pool_numeric=float(row['prize_pool_numeric'] or 0),
+                    tags=tags_by_event.get(row['id'], []),
+                    themes=themes_by_event.get(row['id'], []),
+                    image_url=row['image_url'],
+                    logo_url=row['logo_url'],
+                    organizer=row['organizer'],
+                    participants_count=row['participants_count'],
+                    team_size_min=row['team_size_min'],
+                    team_size_max=row['team_size_max'],
+                    status=row['status'],
+                    scraped_at=row['scraped_at'],
+                    last_updated=row['last_updated'],
+                )
+                events.append(event)
             
             return events, total
     
