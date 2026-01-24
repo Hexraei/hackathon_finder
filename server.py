@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
@@ -25,6 +26,15 @@ app = FastAPI(
     title="HackFind API",
     description="Hackathon Aggregator API with semantic search",
     version="2.0.0"
+)
+
+# CORS middleware for production (Netlify frontend → Railway backend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 db = None
