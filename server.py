@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Query
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
@@ -28,29 +27,14 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS middleware for production (Netlify frontend → Railway backend)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 db = None
 
 
 def get_db():
     global db
     if db is None:
-        if os.getenv('USE_TIDB', 'false').lower() == 'true':
-            from database.tidb_manager import TiDBManager
-            db = TiDBManager()
-            print("📦 Server using TiDB Cloud database")
-        else:
-            from database.db_manager import DatabaseManager
-            db = DatabaseManager(str(BASE_DIR / "hackathons.db"))
-            print("📦 Server using local SQLite database")
+        from database.db_manager import DatabaseManager
+        db = DatabaseManager(str(BASE_DIR / "hackathons.db"))
     return db
 
 
@@ -215,13 +199,9 @@ async def api_hackathons(
 @app.get("/api/sources", tags=["Metadata"])
 async def api_sources():
     """Get all unique source platforms."""
-    try:
-        database = get_db()
-        sources_data = database.get_all_sources()  # Returns list of (source, count) tuples
-        return {"sources": [s[0] for s in sources_data]}
-    except Exception as e:
-        print(f"Sources API Error: {e}")
-        return {"sources": []}
+    all_events = get_all_events_cached()
+    sources = sorted(set(e.get('source') for e in all_events if e.get('source')))
+    return {"sources": sources}
 
 @app.get("/api/locations", tags=["Metadata"])
 async def api_locations():
