@@ -74,6 +74,24 @@ cd ui-react && npm install && npm run dev
 
 ## Changelog
 
+### 1.1 "Cloud & Cleanup" (2026-01-26)
+
+**Cloud Migration**
+- **TiDB Cloud:** Production database migrated from SQLite to TiDB Serverless
+- **Auto-Switch:** `get_database_manager()` factory auto-selects DB based on `USE_TIDB` env
+- **GitHub Actions:** Automated scraping every 8 hours via `.github/workflows/scrape.yml`
+
+**Codebase Cleanup**
+- Removed 15+ unused files (legacy scrapers, test utilities, render.yaml)
+- Deleted `scrapers/` module - all scraping consolidated in `scrape_all.py`
+- Removed experimental `ui-react/` folder
+
+**Dependency Updates**
+- Added `mysql-connector-python` for TiDB Cloud
+- Added `python-dotenv` for environment management
+
+---
+
 ### 7.0 "Clean UX" (2026-01-18)
 
 **Aggregation & Trust**

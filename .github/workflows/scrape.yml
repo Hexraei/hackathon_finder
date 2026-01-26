@@ -38,7 +38,7 @@ jobs:
           TIDB_DATABASE: ${{ secrets.TIDB_DATABASE }}
         run: |
           echo "Starting scraper at $(date)"
-          python scrape_all.py
+          python scraper/scrape_all.py
           echo "Scraper completed at $(date)"
           
       - name: Verify database
@@ -51,7 +51,7 @@ jobs:
           TIDB_DATABASE: ${{ secrets.TIDB_DATABASE }}
         run: |
           python -c "
-          from database.tidb_manager import TiDBManager
+          from backend.database.tidb_manager import TiDBManager
           db = TiDBManager()
           stats = db.get_statistics()
           print(f'Database Stats: {stats[\"total_events\"]} total events')

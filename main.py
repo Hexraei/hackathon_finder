@@ -42,24 +42,25 @@ class HackFind:
         self.config_path = Path(config_path)
         self.db = None
         self.normalizer = None
-        self.factory = None
         self._initialize()
     
     def _initialize(self):
         """Initialize components."""
-        from database.db_manager import DatabaseManager
-        from utils.data_normalizer import DataNormalizer
-        from scrapers.base_scraper import ScraperFactory
+        from backend.database.tidb_manager import get_database_manager
+        from backend.utils.data_normalizer import DataNormalizer
         
-        self.db = DatabaseManager("hackathons.db")
+        self.db = get_database_manager()  # Auto-selects TiDB or SQLite
         self.normalizer = DataNormalizer()
-        self.factory = ScraperFactory(str(self.config_path))
+        
+        # Load config for site list
+        with open(self.config_path, 'r') as f:
+            self.config = __import__('json').load(f)
         
         logger.info("HackFind initialized")
     
     def scrape_site(self, site_key: str, force: bool = False) -> int:
         """
-        Scrape a single site.
+        Scrape a single site using scrape_all module.
         
         Args:
             site_key: Key from websites.json (e.g., "mlh", "devpost")
@@ -70,46 +71,62 @@ class HackFind:
         """
         logger.info(f"Scraping {site_key}...")
         
+        # Map site keys to scrape_all functions
+        from scraper.scrape_all import (
+            scrape_devpost, scrape_devfolio, scrape_unstop, scrape_mlh,
+            scrape_dorahacks, scrape_hackerearth, scrape_kaggle, scrape_devdisplay,
+            scrape_techgig, scrape_geeksforgeeks, scrape_hackquest, scrape_mycareernet,
+            scrape_hackculture, scrape_superteam
+        )
+        
+        scrapers = {
+            'devpost': scrape_devpost,
+            'devfolio': scrape_devfolio,
+            'unstop': scrape_unstop,
+            'mlh': scrape_mlh,
+            'dorahacks': scrape_dorahacks,
+            'hackerearth': scrape_hackerearth,
+            'kaggle': scrape_kaggle,
+            'devdisplay': scrape_devdisplay,
+            'techgig': scrape_techgig,
+            'geeksforgeeks': scrape_geeksforgeeks,
+            'hackquest': scrape_hackquest,
+            'mycareernet': scrape_mycareernet,
+            'hackculture': scrape_hackculture,
+            'superteam': scrape_superteam
+        }
+        
         try:
-            scraper = self.factory.get_scraper(site_key, self.db, self.normalizer)
-            events = scraper.scrape(force_refresh=force)
-            logger.info(f"✓ {site_key}: {len(events)} events")
-            return len(events)
+            if site_key in scrapers:
+                count = scrapers[site_key]()
+                logger.info(f"✓ {site_key}: {count} events")
+                return count if count else 0
+            else:
+                logger.error(f"Unknown site: {site_key}")
+                return 0
         except Exception as e:
             logger.error(f"✗ {site_key}: {e}")
             return 0
     
     def scrape_all(self, tier: Optional[str] = None, force: bool = False) -> dict:
         """
-        Scrape all configured sites or a specific tier.
+        Scrape all configured sites using scrape_all.main().
         
         Args:
-            tier: Optional tier filter
-            force: Force refresh
+            tier: Optional tier filter (ignored - uses scrape_all.main)
+            force: Force refresh (ignored)
             
         Returns:
-            Dict with results per site
+            Dict with results
         """
-        results = {}
+        from scraper.scrape_all import main as scrape_main
         
-        if tier:
-            site_keys = self.factory.priority_tiers.get(tier, [])
-            logger.info(f"Scraping tier {tier}: {len(site_keys)} sites")
-        else:
-            site_keys = self.factory.available_sites
-            logger.info(f"Scraping all {len(site_keys)} sites")
+        logger.info("Running full scrape via scrape_all.py...")
+        scrape_main()
         
-        for site_key in site_keys:
-            count = self.scrape_site(site_key, force)
-            results[site_key] = count
-        
-        # Summary
-        total = sum(results.values())
-        successful = sum(1 for c in results.values() if c > 0)
-        logger.info(f"\n{'='*50}")
-        logger.info(f"Scraping complete: {total} events from {successful}/{len(results)} sites")
-        
-        return results
+        # Return stats
+        stats = self.db.get_statistics()
+        return {'total': stats.get('total_events', 0)}
     
     def search(
         self,

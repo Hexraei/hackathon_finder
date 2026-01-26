@@ -6,8 +6,8 @@ beautifulsoup4==4.14.3
 requests>=2.31.0
 lxml>=4.9.0
 
-# Browser automation (optional, for complex sites)
-playwright>=1.40.0
+# Browser automation (removed for lightweight server)
+# playwright>=1.40.0
 
 # Database
 # sqlite3 is built into Python
@@ -25,7 +25,9 @@ uvicorn[standard]>=0.32.0
 # Testing
 pytest>=7.0.0
 
-# AI / Vector Search
+# AI / Vector Search (chromadb removed)
 sentence-transformers>=2.2.0
-chromadb>=0.4.0
 
+# TiDB Cloud support
+mysql-connector-python>=8.0.0
+python-dotenv>=1.0.0
