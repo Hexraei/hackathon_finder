@@ -1,0 +1,16 @@
+[build]
+  # Base directory for the frontend
+  base = "frontend"
+  
+  # No build command needed - it's static HTML/CSS/JS
+  command = ""
+  
+  # Publish the frontend folder directly
+  publish = "frontend"
+
+# Redirect API calls to your Railway backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-railway-backend.up.railway.app/api/:splat"
+  status = 200
+  force = true
