@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 # Add project root to path (parent of scraper dir)
 sys.path.insert(0, str(Path(__file__).parent.parent))
